@@ -502,10 +502,10 @@ typedef CGPoint KIFDisplacement;
         UITableView *tableView = (UITableView*)[UIAccessibilityElement viewContainingAccessibilityElement:element];
 
         KIFTestCondition([tableView isKindOfClass:[UITableView class]], error, @"Specified view is not a UITableView");
-        KIFTestCondition(tableView, error, @"Table view with label %@ not found", tableViewLabel);
+        KIFTestCondition(tableView, error, @"Table view with label '%@' not found", tableViewLabel);
 
         UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
-		if (!cell) return KIFTestStepResultFailure;
+		KIFTestCondition(cell, error, @"Cell at indexPath '%@' not found", [indexPath description]);
 
         CGRect cellFrame = [cell.contentView convertRect:[cell.contentView frame] toView:tableView];
         [tableView tapAtPoint:CGPointCenteredInRect(cellFrame)];
