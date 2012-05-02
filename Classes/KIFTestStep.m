@@ -497,15 +497,16 @@ static NSTimeInterval KIFTestStepDefaultTimeout = 10.0;
         UIAccessibilityElement *element = [[UIApplication sharedApplication] accessibilityElementWithLabel:tableViewLabel];
         KIFTestCondition(element, error, @"View with label %@ not found", tableViewLabel);
         UITableView *tableView = (UITableView*)[UIAccessibilityElement viewContainingAccessibilityElement:element];
-        
+
         KIFTestCondition([tableView isKindOfClass:[UITableView class]], error, @"Specified view is not a UITableView");
-        
         KIFTestCondition(tableView, error, @"Table view with label %@ not found", tableViewLabel);
-        
+
         UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+		if (!cell) return KIFTestStepResultFailure;
+
         CGRect cellFrame = [cell.contentView convertRect:[cell.contentView frame] toView:tableView];
         [tableView tapAtPoint:CGPointCenteredInRect(cellFrame)];
-        
+
         return KIFTestStepResultSuccess;
     }];
 }
