@@ -172,9 +172,38 @@ static void releaseInstance()
     return scenarios;
 }
 
-- (void)addAllScenarios;
+-(NSArray*) getSubclasses:(Class) parentClass 
 {
-    [self addAllScenariosWithSelectorPrefix:@"scenario" fromClass:[KIFTestScenario class]];
+    int numClasses = objc_getClassList(NULL, 0);
+    Class *classes = NULL;
+	
+    classes = malloc(sizeof(Class) * numClasses);
+    numClasses = objc_getClassList(classes, numClasses);
+    
+    NSMutableArray *result = [NSMutableArray array];
+    for (NSInteger i = 0; i < numClasses; i++) {
+        Class superClass = classes[i];
+        do{
+            superClass = class_getSuperclass(superClass);
+        } while(superClass && superClass != parentClass);
+        
+        if (superClass == nil) {
+            continue;
+        }   
+        [result addObject:classes[i]];
+    }
+    free(classes);
+    return result;
+}
+
+- (void)addAllScenarios
+{
+	NSMutableArray* scenarioClasses = [NSMutableArray arrayWithObjects:[KIFTestScenario class], nil];
+	[scenarioClasses addObjectsFromArray:[self getSubclasses:[KIFTestScenario class]]];
+	for(Class klass in scenarioClasses)
+	{
+		[self addAllScenariosWithSelectorPrefix:@"scenario" fromClass:klass];
+	}
 }
 
 - (void)addAllScenariosWithSelectorPrefix:(NSString *)selectorPrefix fromClass:(Class)klass;
