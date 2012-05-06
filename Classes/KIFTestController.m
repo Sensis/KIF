@@ -31,6 +31,7 @@ extern id objc_msgSend(id theReceiver, SEL theSelector, ...);
 @property (nonatomic, copy) KIFTestControllerCompletionBlock completionBlock;
 
 + (void)_enableAccessibility;
+- (void)_cleanUpAfterScenario:(KIFTestScenario *)scenario;
 
 - (void)_initializeScenariosIfNeeded;
 - (BOOL)_isAccessibilityInspectorEnabled;
@@ -96,6 +97,10 @@ extern id objc_msgSend(id theReceiver, SEL theSelector, ...);
     }
     
     [autoreleasePool drain];
+}
+
+- (void)_cleanUpAfterScenario:(KIFTestScenario *)scenario
+{
 }
 
 static KIFTestController *sharedInstance = nil;
@@ -427,6 +432,7 @@ static void releaseInstance()
         NSAssert(currentScenarioIndex != NSNotFound, @"Current scenario %@ not found in test scenarios %@, but should be!", self.currentScenario, self.scenarios);
         
         [self _logDidFinishScenario:self.currentScenario duration:-[self.currentScenarioStartDate timeIntervalSinceNow]];
+		[self _cleanUpAfterScenario:self.currentScenario];
         if (result == KIFTestStepResultSuccess) {
             [failedScenarioIndexes removeIndex:currentScenarioIndex];
         }

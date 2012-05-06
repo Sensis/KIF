@@ -130,4 +130,5 @@ typedef void (^KIFTestControllerCompletionBlock)();
  */
 - (void)startTestingWithCompletionBlock:(KIFTestControllerCompletionBlock)completionBlock;
 
+
 @end
