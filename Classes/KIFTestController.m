@@ -31,7 +31,6 @@ extern id objc_msgSend(id theReceiver, SEL theSelector, ...);
 @property (nonatomic, copy) KIFTestControllerCompletionBlock completionBlock;
 
 + (void)_enableAccessibility;
-- (void)_cleanUpAfterScenario:(KIFTestScenario *)scenario;
 
 - (void)_initializeScenariosIfNeeded;
 - (BOOL)_isAccessibilityInspectorEnabled;
@@ -99,8 +98,9 @@ extern id objc_msgSend(id theReceiver, SEL theSelector, ...);
     [autoreleasePool drain];
 }
 
-- (void)_cleanUpAfterScenario:(KIFTestScenario *)scenario
+- (void)cleanUpAfterScenario:(KIFTestScenario *)scenario
 {
+    //Override
 }
 
 static KIFTestController *sharedInstance = nil;
