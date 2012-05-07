@@ -432,7 +432,7 @@ static void releaseInstance()
         NSAssert(currentScenarioIndex != NSNotFound, @"Current scenario %@ not found in test scenarios %@, but should be!", self.currentScenario, self.scenarios);
         
         [self _logDidFinishScenario:self.currentScenario duration:-[self.currentScenarioStartDate timeIntervalSinceNow]];
-		[self _cleanUpAfterScenario:self.currentScenario];
+	[self cleanUpAfterScenario:self.currentScenario];
         if (result == KIFTestStepResultSuccess) {
             [failedScenarioIndexes removeIndex:currentScenarioIndex];
         }
