@@ -71,7 +71,7 @@ extern id objc_msgSend(id theReceiver, SEL theSelector, ...);
     [KIFTestController _enableAccessibility];
 }
 
-+ (void)_enableAccessibility;
++ (void)setSimulatorDomain:(CFStringRef)domain setting:(CFStringRef)setting value:(CFPropertyListRef)value
 {
     NSAutoreleasePool *autoreleasePool = [[NSAutoreleasePool alloc] init];
     NSString *appSupportLocation = @"/System/Library/PrivateFrameworks/AppSupport.framework/AppSupport";
@@ -87,15 +87,20 @@ extern id objc_msgSend(id theReceiver, SEL theSelector, ...);
     CFStringRef (*copySharedResourcesPreferencesDomainForDomain)(CFStringRef domain) = dlsym(appSupportLibrary, "CPCopySharedResourcesPreferencesDomainForDomain");
     
     if (copySharedResourcesPreferencesDomainForDomain) {
-        CFStringRef accessibilityDomain = copySharedResourcesPreferencesDomainForDomain(CFSTR("com.apple.Accessibility"));
+        CFStringRef accessibilityDomain = copySharedResourcesPreferencesDomainForDomain(domain);
         
         if (accessibilityDomain) {
-            CFPreferencesSetValue(CFSTR("ApplicationAccessibilityEnabled"), kCFBooleanTrue, accessibilityDomain, kCFPreferencesAnyUser, kCFPreferencesAnyHost);
+            CFPreferencesSetValue(setting, value, accessibilityDomain, kCFPreferencesAnyUser, kCFPreferencesAnyHost);
             CFRelease(accessibilityDomain);
         }
     }
     
-    [autoreleasePool drain];
+    [autoreleasePool drain];	
+}
+
++ (void)_enableAccessibility;
+{
+	[self setSimulatorDomain:CFSTR("com.apple.Accessibility") setting:CFSTR("ApplicationAccessibilityEnabled") value:kCFBooleanTrue];
 }
 
 - (void)cleanUpAfterScenario:(KIFTestScenario *)scenario

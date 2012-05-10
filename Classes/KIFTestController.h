@@ -137,4 +137,9 @@ typedef void (^KIFTestControllerCompletionBlock)();
  */
 - (void)cleanUpAfterScenario:(KIFTestScenario *)scenario;
 
+/*!
+ @method setSimulatorDomain:setting:value:
+ @abstract set a plist property on the ios simulator
+ */
++ (void)setSimulatorDomain:(CFStringRef)domain setting:(CFStringRef)setting value:(CFPropertyListRef)value;
 @end
