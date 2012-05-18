@@ -302,9 +302,10 @@ typedef KIFTestStepResult (^KIFTestStepExecutionBlock)(KIFTestStep *step, NSErro
  @param label The accessibility label of the element to tap.
  @param value The accessibility value of the element to tap.
  @param traits The accessibility traits of the element to tap. Elements that do not include at least these traits are ignored.
+ @param offsetFromCenter The offset from center to tap on in the view
  @result A configured test step.
  */
-+ (id)stepToTapViewWithAccessibilityLabel:(NSString *)label value:(NSString *)value traits:(UIAccessibilityTraits)traits;
++ (id)stepToTapViewWithAccessibilityLabel:(NSString *)label value:(NSString *)value traits:(UIAccessibilityTraits)traits offsetFromCenter:(CGPoint)offsetFromCenter;
 
 /*!
  @method stepToTapScreenAtPoint:

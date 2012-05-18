@@ -240,10 +240,10 @@ typedef CGPoint KIFDisplacement;
 
 + (id)stepToTapViewWithAccessibilityLabel:(NSString *)label traits:(UIAccessibilityTraits)traits;
 {
-    return [self stepToTapViewWithAccessibilityLabel:label value:nil traits:traits];
+    return [self stepToTapViewWithAccessibilityLabel:label value:nil traits:traits offsetFromCenter:CGPointZero];
 }
 
-+ (id)stepToTapViewWithAccessibilityLabel:(NSString *)label value:(NSString *)value traits:(UIAccessibilityTraits)traits;
++ (id)stepToTapViewWithAccessibilityLabel:(NSString *)label value:(NSString *)value traits:(UIAccessibilityTraits)traits offsetFromCenter:(CGPoint)offsetFromCenter;
 {
     NSString *description = nil;
     if (value.length) {
@@ -283,6 +283,8 @@ typedef CGPoint KIFDisplacement;
 
         CGRect elementFrame = [view.window convertRect:element.accessibilityFrame toView:view];
         CGPoint tappablePointInElement = [view tappablePointInRect:elementFrame];
+		tappablePointInElement.x += offsetFromCenter.x;
+		tappablePointInElement.y += offsetFromCenter.y;
 
         // This is mostly redundant of the test in _accessibilityElementWithLabel:
         KIFTestWaitCondition(!isnan(tappablePointInElement.x), error, @"The element with accessibility label %@ is not tappable", label);
