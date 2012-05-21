@@ -208,12 +208,18 @@ static void releaseInstance()
 
 - (void)addAllScenarios
 {
-	NSMutableArray* scenarioClasses = [NSMutableArray arrayWithObjects:[KIFTestScenario class], nil];
-	[scenarioClasses addObjectsFromArray:[self getSubclasses:[KIFTestScenario class]]];
-	for(Class klass in scenarioClasses)
-	{
-		[self addAllScenariosWithSelectorPrefix:@"scenario" fromClass:klass];
-	}
+    [self addAllScenariosWithSelectorPrefix:@"scenario"];
+}
+
+
+- (void)addAllScenariosWithSelectorPrefix:(NSString *)selectorPrefix
+{
+    NSMutableArray* scenarioClasses = [NSMutableArray arrayWithObjects:[KIFTestScenario class], nil];
+    [scenarioClasses addObjectsFromArray:[self getSubclasses:[KIFTestScenario class]]];
+    for(Class klass in scenarioClasses)
+    {
+        [self addAllScenariosWithSelectorPrefix:selectorPrefix fromClass:klass];
+    }
 }
 
 - (void)addAllScenariosWithSelectorPrefix:(NSString *)selectorPrefix fromClass:(Class)klass;
@@ -243,7 +249,7 @@ static void releaseInstance()
             [selectorStrings addObject:selectorString];
         }
     }
-    
+
     [selectorStrings sortUsingSelector:@selector(compare:)];
     [selectorStrings enumerateObjectsUsingBlock:^(id selectorString, NSUInteger idx, BOOL *stop) {
         KIFTestScenario *scenario = (KIFTestScenario *)objc_msgSend(klass, NSSelectorFromString(selectorString));
