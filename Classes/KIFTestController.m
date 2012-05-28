@@ -206,16 +206,20 @@ static void releaseInstance()
     return result;
 }
 
-- (void)addAllScenarios
+- (Class) scenarioClass
 {
-    [self addAllScenariosWithSelectorPrefix:@"scenario"];
+	return [KIFTestScenario class];
 }
 
-
-- (void)addAllScenariosWithSelectorPrefix:(NSString *)selectorPrefix
+- (void)addAllScenarios
 {
-    NSMutableArray* scenarioClasses = [NSMutableArray arrayWithObjects:[KIFTestScenario class], nil];
-    [scenarioClasses addObjectsFromArray:[self getSubclasses:[KIFTestScenario class]]];
+    [self addAllScenariosWithSelectorPrefix:@"scenario" parentClass:[self scenarioClass]];
+}
+
+- (void)addAllScenariosWithSelectorPrefix:(NSString *)selectorPrefix parentClass:(Class)parentClass
+{
+    NSMutableArray* scenarioClasses = [NSMutableArray arrayWithObjects:parentClass, nil];
+    [scenarioClasses addObjectsFromArray:[self getSubclasses:parentClass]];
     for(Class klass in scenarioClasses)
     {
         [self addAllScenariosWithSelectorPrefix:selectorPrefix fromClass:klass];
