@@ -103,6 +103,13 @@ typedef KIFTestStepResult (^KIFTestStepExecutionBlock)(KIFTestStep *step, NSErro
 @property (nonatomic, retain) NSString *description;
 
 /*!
+ @property notificationOccurred
+ @abstract If an observed notification has occured
+ */
+
+@property BOOL notificationOccurred;
+
+/*!
  @method defaultTimeout
  @abstract The default amount of time to assign to new steps before assuming they failed.
  @discussion To change the default value of the timeout property, either subclass KIFTestStep and override this method or call +setDefaultTimeout: with a different value.
@@ -265,14 +272,15 @@ typedef KIFTestStepResult (^KIFTestStepExecutionBlock)(KIFTestStep *step, NSErro
 + (id)stepToWaitForTimeInterval:(NSTimeInterval)interval description:(NSString *)description;
 
 /*!
- @method stepToWaitForNotificationName:object:
+ @method stepToObserveNotificationName:object:wait:
  @abstract A step that waits for an NSNotification
  @discussion Useful when a test requires an asynchronous task to complete, especially when that task does not trigger a visible change in the view hierarchy
  @param name The name of the NSNotification
  @param object The object to which the step should listen. Nil value will listen to all objects.
+ @param wait for notification aswell, useful if you want to register and run an assertion after subsequent step executions
  @result A configured test step.
  */
-+ (id)stepToWaitForNotificationName:(NSString*)name object:(id)object;
++ (id)stepToObserveNotificationName:(NSString *)name object:(id)object wait:(BOOL)wait;
 
 /*!
  @method stepToTapViewWithAccessibilityLabel:
