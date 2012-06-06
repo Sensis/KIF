@@ -127,6 +127,49 @@ typedef CGPoint KIFDisplacement;
     }];
 }
 
++ (id)stepToWaitForParentViewWithAccessibilityLabel:(NSString *)label childViewWithAccessibilityLabel:(NSString *)childlabel
+{
+    return [self stepToWaitForParentViewWithAccessibilityLabel:label value:nil childViewWithAccessibilityLabel:childlabel childValue:nil];
+}
+
++ (id)stepToWaitForParentViewWithAccessibilityLabel:(NSString *)label value:(NSString *)value childViewWithAccessibilityLabel:(NSString *)childLabel  childValue:(NSString *)childValue
+{
+    NSString *description = [NSString stringWithFormat:@"Wait for parent view with accessibility label \"%@\" and child with accessibility label \"%@\"", label, childLabel];
+    
+    return [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
+        UIAccessibilityElement *parentElement = [self _accessibilityElementWithLabel:label accessibilityValue:value tappable:NO traits:UIAccessibilityTraitNone error:error];
+        UIView *parentElementView = [UIAccessibilityElement viewContainingAccessibilityElement:parentElement];
+        
+        NSString *parentDescription = nil;
+        if (value.length)
+        {
+            parentDescription = [NSString stringWithFormat:@"parent view with label \"%@\" and value \"%@\"", label, value];
+        }
+        else
+        {
+            parentDescription = [NSString stringWithFormat:@"parent view with label \"%@\"", label];
+        }
+        
+        KIFTestWaitCondition(parentElementView, error, @"Failed to find %@", parentDescription);
+        
+        UIAccessibilityElement *childElement = [parentElementView accessibilityElementWithLabel:childLabel accessibilityValue:childValue traits:UIAccessibilityTraitNone];
+        NSString *childNotFoundDescription = nil;
+        if (childValue.length)
+        {
+            childNotFoundDescription = [NSString stringWithFormat:@"Failed to find child view with label \"%@\" and value \"%@\" within %@", childLabel, value, parentDescription];
+        }
+        else
+        {
+            childNotFoundDescription = [NSString stringWithFormat:@"Failed to find child view with label \"%@\" within %@", childLabel, parentDescription];
+        }
+        KIFTestWaitCondition(childElement, error, @"%@", childNotFoundDescription);
+        
+        
+        return KIFTestStepResultSuccess;
+    }];
+    
+}
+
 + (id)stepToWaitForAbsenceOfViewWithAccessibilityLabel:(NSString *)label;
 {
     return [self stepToWaitForAbsenceOfViewWithAccessibilityLabel:label traits:UIAccessibilityTraitNone];
@@ -574,7 +617,6 @@ typedef CGPoint KIFDisplacement;
 }
 
 #pragma mark Step Collections
-
 + (NSArray *)stepsToChoosePhotoInAlbum:(NSString *)albumName atRow:(NSInteger)row column:(NSInteger)column;
 {
     NSMutableArray *steps = [NSMutableArray array];
