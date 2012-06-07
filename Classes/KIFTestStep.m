@@ -22,9 +22,7 @@ static NSTimeInterval KIFTestStepDefaultTimeout = 10.0;
 @interface KIFTestStep ()
 
 @property (nonatomic, copy) KIFTestStepExecutionBlock executionBlock;
-@property (nonatomic, copy) NSString *notificationName;
 @property (nonatomic, retain) id notificationObject;
-@property BOOL observingForNotification;
 
 + (BOOL)_isUserInteractionEnabledForView:(UIView *)view;
 
@@ -47,7 +45,6 @@ typedef CGPoint KIFDisplacement;
 @synthesize notificationName;
 @synthesize notificationObject;
 @synthesize notificationOccurred;
-@synthesize observingForNotification;
 @synthesize timeout;
 
 #pragma mark Class Methods
@@ -257,23 +254,32 @@ typedef CGPoint KIFDisplacement;
     return step;
 }
 
-+ (id)stepToObserveNotificationName:(NSString *)name object:(id)object wait:(BOOL)wait
++ (id)stepToObserveNotificationName:(NSString *)name object:(id)object
 {
-    NSString *description = [NSString stringWithFormat:@"Wait for notification \"%@\"", name];
+    NSString *description = [NSString stringWithFormat:@"Observe notification \"%@\"", name];
     
     KIFTestStep *step = [self stepWithDescription:description executionBlock:^(KIFTestStep *scopedStep, NSError **error) {  
-        if (!step.observingForNotification) {            
-            step.notificationName = name;
-            step.notificationObject = object; 
-            step.observingForNotification = YES;
-            [[NSNotificationCenter defaultCenter] addObserver:scopedStep selector:@selector(_onObservedNotification:) name:name object:object];
-        }
-        
-		if(wait)
-			KIFTestWaitCondition(step.notificationOccurred, error, @"Waiting for notification \"%@\"", name);
-		
+		scopedStep.notificationName = name;
+		scopedStep.notificationObject = object;
+		[[NSNotificationCenter defaultCenter] addObserver:scopedStep selector:@selector(_onObservedNotification:) name:name object:object];
         return KIFTestStepResultSuccess;
     }];   
+    return step;
+}
+
++ (id)stepToWaitForNotification:(KIFTestStep*)observingNotificationStep
+{
+    NSString *description = [NSString stringWithFormat:@"Wait for notification \"%@\"", observingNotificationStep.notificationName];
+
+    KIFTestStep *step = [self stepWithDescription:description
+								   executionBlock:^(KIFTestStep *scopedStep, NSError **error)
+	{
+		KIFTestWaitCondition(observingNotificationStep.notificationOccurred,
+							 error,
+							 @"Waiting for notification \"%@\"",
+							 observingNotificationStep.notificationName);
+        return KIFTestStepResultSuccess;
+    }];
     return step;
 }
 
@@ -685,6 +691,10 @@ typedef CGPoint KIFDisplacement;
 
 - (void)dealloc;
 {
+	if (notificationName || notificationObject) {
+        [[NSNotificationCenter defaultCenter] removeObserver:self name:notificationName object:notificationObject];
+    }
+
     [executionBlock release];
     executionBlock = nil;
     [description release];
@@ -718,9 +728,6 @@ typedef CGPoint KIFDisplacement;
 
 - (void)cleanUp;
 {
-    if (notificationName || notificationObject) {
-        [[NSNotificationCenter defaultCenter] removeObserver:self name:notificationName object:notificationObject];    
-    }
 }
 
 #pragma mark Private Methods

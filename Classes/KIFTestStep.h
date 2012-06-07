@@ -84,7 +84,6 @@ typedef KIFTestStepResult (^KIFTestStepExecutionBlock)(KIFTestStep *step, NSErro
     NSString *notificationName;
     id notificationObject;
     BOOL notificationOccurred;
-    BOOL observingForNotification;
     NSTimeInterval timeout;    
 }
 
@@ -108,6 +107,13 @@ typedef KIFTestStepResult (^KIFTestStepExecutionBlock)(KIFTestStep *step, NSErro
  */
 
 @property BOOL notificationOccurred;
+
+/*!
+ @property notificationName
+ @abstract Name of notification being observed, if any
+ */
+
+@property (nonatomic, copy) NSString *notificationName;
 
 /*!
  @method defaultTimeout
@@ -286,14 +292,25 @@ typedef KIFTestStepResult (^KIFTestStepExecutionBlock)(KIFTestStep *step, NSErro
 
 /*!
  @method stepToObserveNotificationName:object:wait:
- @abstract A step that waits for an NSNotification
+ @abstract A step that observes an NSNotification
  @discussion Useful when a test requires an asynchronous task to complete, especially when that task does not trigger a visible change in the view hierarchy
+	call stepToWaitForNotification: to actually verify
  @param name The name of the NSNotification
  @param object The object to which the step should listen. Nil value will listen to all objects.
  @param wait for notification aswell, useful if you want to register and run an assertion after subsequent step executions
  @result A configured test step.
  */
-+ (id)stepToObserveNotificationName:(NSString *)name object:(id)object wait:(BOOL)wait;
++ (id)stepToObserveNotificationName:(NSString *)name object:(id)object;
+
+/*!
+ @method stepToWaitForNotification:
+ @abstract A step that waits for an NSNotification
+ @discussion verification of a notification observed by stepToObserveNotificationName:
+ @param the step that has hooked into an NSNotification
+ @result A configured test step.
+ */
++ (id)stepToWaitForNotification:(KIFTestStep*)observingNotificationStep;
+
 
 /*!
  @method stepToTapViewWithAccessibilityLabel:
