@@ -45,7 +45,7 @@ typedef void (^KIFTestControllerCompletionBlock)();
     NSDate *currentStepStartDate;
     NSDate *currentScenarioStartDate;
     
-    NSInteger failureCount;
+    NSMutableArray *failingScenarios;
     NSInteger completeScenarioCount;
     NSMutableIndexSet *failedScenarioIndexes;
     NSURL *failedScenarioFile;
@@ -77,10 +77,10 @@ typedef void (^KIFTestControllerCompletionBlock)();
 @property (nonatomic, readonly, retain) KIFTestStep *currentStep;
 
 /*!
- @property failureCount
- @abstract The number of failed scenarios so far.
+ @property failingScenarios
+ @abstract The failed scenarios so far.
  */
-@property (nonatomic, readonly) NSInteger failureCount;
+@property (nonatomic, readonly) NSMutableArray *failingScenarios;
 
 /*!
  @method sharedInstance

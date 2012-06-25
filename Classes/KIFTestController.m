@@ -28,6 +28,7 @@ extern id objc_msgSend(id theReceiver, SEL theSelector, ...);
 @property (nonatomic, retain) NSDate *testSuiteStartDate;
 @property (nonatomic, retain) NSDate *currentScenarioStartDate;
 @property (nonatomic, retain) NSDate *currentStepStartDate;
+@property (nonatomic, retain) NSMutableArray *failingScenarios;
 @property (nonatomic, copy) KIFTestControllerCompletionBlock completionBlock;
 
 + (void)_enableAccessibility;
@@ -57,7 +58,7 @@ extern id objc_msgSend(id theReceiver, SEL theSelector, ...);
 @synthesize scenarios;
 @synthesize testing;
 @synthesize testSuiteStartDate;
-@synthesize failureCount;
+@synthesize failingScenarios;
 @synthesize currentScenario;
 @synthesize currentStep;
 @synthesize currentScenarioStartDate;
@@ -146,12 +147,15 @@ static void releaseInstance()
     if (!failedScenarioIndexes) {
         failedScenarioIndexes = [[NSMutableIndexSet alloc] init];
     }
+
+    self.failingScenarios = [NSMutableArray array];
     
     return self;
 }
 
 - (void)dealloc;
 {
+    self.failingScenarios = nil;
     self.currentStep = nil;
     self.currentScenario = nil;
     self.scenarios = nil;
@@ -374,6 +378,7 @@ static void releaseInstance()
     switch (result) {
         case KIFTestStepResultFailure: {
             [self _logDidFailStep:self.currentStep duration:currentStepDuration error:error];
+            [failingScenarios addObject:self.currentScenario];
             [self _writeScreenshotForStep:self.currentStep];
             [self.currentStep cleanUp];
             
@@ -381,7 +386,6 @@ static void releaseInstance()
             self.currentScenarioStartDate = [NSDate date];
             self.currentStep = (self.currentScenario.steps.count ? [self.currentScenario.steps objectAtIndex:0] : nil);
             self.currentStepStartDate = [NSDate date];
-            failureCount++;
             break;
         }
         case KIFTestStepResultSuccess: {
@@ -562,11 +566,18 @@ static void releaseInstance()
 {
     KIFLogBlankLine();
     KIFLogSeparator();
-    KIFLog(@"KIF TEST RUN FINISHED: %d failures (duration %.2fs)", failureCount, -[self.testSuiteStartDate timeIntervalSinceNow]);
+    if ([failingScenarios count])
+    {
+        KIFLog(@"FAILING SCENARIOS:");
+        [failingScenarios enumerateObjectsUsingBlock:^(KIFTestScenario* failingScenario, NSUInteger idx, BOOL *stop) {
+            KIFLog(@"%@",failingScenario.description);
+        }];
+    }
+    KIFLog(@"KIF TEST RUN FINISHED: %d failures (duration %.2fs)", [failingScenarios count], -[self.testSuiteStartDate timeIntervalSinceNow]);
     KIFLogSeparator();
     
     // Also log the failure count to stdout, for easier integration with CI tools.
-    NSLog(@"*** KIF TESTING FINISHED: %d failures", failureCount);
+    NSLog(@"*** KIF TESTING FINISHED: %d failures", [failingScenarios count]);
 }
 
 - (void)_logDidStartScenario:(KIFTestScenario *)scenario;
