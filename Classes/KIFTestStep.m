@@ -124,43 +124,97 @@ typedef CGPoint KIFDisplacement;
     }];
 }
 
-+ (id)stepToWaitForParentViewWithAccessibilityLabel:(NSString *)label childViewWithAccessibilityLabel:(NSString *)childlabel
++ (id)stepToWaitForParentViewWithAccessibilityLabel:(NSString *)parentLabel childViewWithAccessibilityLabel:(NSString *)childlabel
 {
-    return [self stepToWaitForParentViewWithAccessibilityLabel:label value:nil childViewWithAccessibilityLabel:childlabel childValue:nil];
+    return [self stepToWaitForParentViewWithAccessibilityLabel:parentLabel value:nil childViewWithAccessibilityLabel:childlabel childValue:nil];
 }
 
-+ (id)stepToWaitForParentViewWithAccessibilityLabel:(NSString *)label value:(NSString *)value childViewWithAccessibilityLabel:(NSString *)childLabel  childValue:(NSString *)childValue
++ (id)stepToWaitForParentViewWithAccessibilityLabel:(NSString *)parentLabel
+                                              value:(NSString *)parentValue
+                    childViewWithAccessibilityLabel:(NSString *)childLabel
+                                         childValue:(NSString *)childValue
 {
-    NSString *description = [NSString stringWithFormat:@"Wait for parent view with accessibility label \"%@\" and child with accessibility label \"%@\"", label, childLabel];
+    return [self stepToWaitForParentViewWithAccessibilityLabel:parentLabel
+                                                         value:parentValue
+                               childViewWithAccessibilityLabel:childLabel
+                                                    childValue:childValue
+                                                childExistence:YES];
+}
+
++ (id)stepToWaitForParentViewWithAccessibilityLabel:(NSString *)parentLabel notContainingChildViewWithAccessibilityLabel:(NSString *)childlabel
+{
+    return [self stepToWaitForParentViewWithAccessibilityLabel:parentLabel
+                                                         value:nil
+                  notContainingChildViewWithAccessibilityLabel:childlabel
+                                                    childValue:nil];
+}
+
+
++ (id)stepToWaitForParentViewWithAccessibilityLabel:(NSString *)parentLabel
+                                              value:(NSString *)parentValue
+       notContainingChildViewWithAccessibilityLabel:(NSString *)childLabel
+                                         childValue:(NSString *)childValue
+{
+    return [self stepToWaitForParentViewWithAccessibilityLabel:parentLabel
+                                                         value:parentValue
+                               childViewWithAccessibilityLabel:childLabel
+                                                    childValue:childValue
+                                                childExistence:NO];    
+}
+
++ (id)stepToWaitForParentViewWithAccessibilityLabel:(NSString *)parentLabel
+                                              value:(NSString *)parentValue
+                    childViewWithAccessibilityLabel:(NSString *)childLabel
+                                         childValue:(NSString *)childValue
+                                     childExistence:(BOOL)requiresChild
+{
+    
+    NSString *description = [NSString stringWithFormat:@"Wait for parent view with accessibility label \"%@\" %@ containing child with accessibility label \"%@\"", parentLabel, requiresChild ? @"" : @"not", childLabel];
     
     return [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
-        UIAccessibilityElement *parentElement = [self _accessibilityElementWithLabel:label accessibilityValue:value tappable:NO traits:UIAccessibilityTraitNone error:error];
-        UIView *parentElementView = [UIAccessibilityElement viewContainingAccessibilityElement:parentElement];
+        UIAccessibilityElement *parentElement = [self _accessibilityElementWithLabel:parentLabel accessibilityValue:parentValue tappable:NO traits:UIAccessibilityTraitNone error:error];
+        UIView *parentElementView = [UIAccessibilityElement viewContainingAccessibilityElement:parentElement];    
         
         NSString *parentDescription = nil;
-        if (value.length)
+        if (parentValue.length)
         {
-            parentDescription = [NSString stringWithFormat:@"parent view with label \"%@\" and value \"%@\"", label, value];
+            parentDescription = [NSString stringWithFormat:@"parent view with label \"%@\" and value \"%@\"", parentLabel, parentValue];
         }
         else
         {
-            parentDescription = [NSString stringWithFormat:@"parent view with label \"%@\"", label];
+            parentDescription = [NSString stringWithFormat:@"parent view with label \"%@\"", parentLabel];
         }
         
         KIFTestWaitCondition(parentElementView, error, @"Failed to find %@", parentDescription);
         
         UIAccessibilityElement *childElement = [parentElementView accessibilityElementWithLabel:childLabel accessibilityValue:childValue traits:UIAccessibilityTraitNone];
-        NSString *childNotFoundDescription = nil;
+        NSString *childDescription = nil;
         if (childValue.length)
         {
-            childNotFoundDescription = [NSString stringWithFormat:@"Failed to find child view with label \"%@\" and value \"%@\" within %@", childLabel, value, parentDescription];
+            childDescription = [NSString stringWithFormat:@"child view with label \"%@\" and value \"%@\" within %@", childLabel, parentValue, parentDescription];
         }
         else
         {
-            childNotFoundDescription = [NSString stringWithFormat:@"Failed to find child view with label \"%@\" within %@", childLabel, parentDescription];
+            childDescription = [NSString stringWithFormat:@"child view with label \"%@\" within %@", childLabel, parentDescription];
         }
-        KIFTestWaitCondition(childElement, error, @"%@", childNotFoundDescription);
         
+        
+        if(requiresChild){
+            KIFTestWaitCondition(childElement, error, @"Failed to find %@", childDescription);
+        }
+        else{
+            if (!childElement) {
+                return KIFTestStepResultSuccess;
+            }
+            
+            UIView *childView = [UIAccessibilityElement viewContainingAccessibilityElement:childElement];
+            
+            // If we found an element, but it's not associated with a view, then something's wrong. Wait it out and try again.
+            KIFTestWaitCondition(childView, error, @"Cannot find view containing accessibility element with the label \"%@\"", parentLabel);
+            
+            // Hidden views count as absent
+            KIFTestWaitCondition([childView isHidden], error, @"Found %@", childDescription);
+        }
         
         return KIFTestStepResultSuccess;
     }];
@@ -562,6 +616,39 @@ typedef CGPoint KIFDisplacement;
         CGRect cellFrame = [cell.contentView convertRect:[cell.contentView frame] toView:tableView];
         [tableView tapAtPoint:CGPointCenteredInRect(cellFrame)];
 
+        return KIFTestStepResultSuccess;
+    }];
+}
+
+
++ (id)stepToWaitForViewWithAccessibilityLabel:(NSString *)label value:(NSString *)value notContainingViewWithAccessibilityLabel:(NSString *)absentChildLabel childValue:(NSString *)childValue{
+	NSString *description = [NSString stringWithFormat:@"Wait for parent view with accessibility label \"%@\" without child with accessibility label \"%@\"", label, absentChildLabel];
+    
+    return [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
+        UIAccessibilityElement *parentElement = [self _accessibilityElementWithLabel:label accessibilityValue:value tappable:NO traits:UIAccessibilityTraitNone error:error];
+        UIView *parentElementView = [UIAccessibilityElement viewContainingAccessibilityElement:parentElement];
+        
+        NSString *parentDescription = nil;
+
+            parentDescription = [NSString stringWithFormat:@"parent view with label \"%@\"", label];
+        
+        KIFTestWaitCondition(parentElementView, error, @"Failed to find %@", parentDescription);
+        
+        UIAccessibilityElement *childElement = [parentElementView accessibilityElementWithLabel:absentChildLabel accessibilityValue:childValue traits:UIAccessibilityTraitNone];
+        
+        if (!childElement) {
+            return KIFTestStepResultSuccess;
+        }
+        
+        UIView *view = [UIAccessibilityElement viewContainingAccessibilityElement:childElement];
+        
+        // If we found an element, but it's not associated with a view, then something's wrong. Wait it out and try again.
+        KIFTestWaitCondition(view, error, @"Cannot find view containing accessibility element with the label \"%@\"", absentChildLabel);
+        
+        // Hidden views count as absent
+        KIFTestWaitCondition([view isHidden], error, @"Accessibility element with label \"%@\" is visible and not hidden.", absentChildLabel);
+        
+        
         return KIFTestStepResultSuccess;
     }];
 }
