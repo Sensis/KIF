@@ -9,7 +9,7 @@
 
 #import "UIAccessibilityElement-KIFAdditions.h"
 #import "LoadableCategory.h"
-
+#import "UIView-KIFAdditions.h"
 
 MAKE_CATEGORIES_LOADABLE(UIAccessibilityElement_KIFAdditions)
 
@@ -18,12 +18,16 @@ MAKE_CATEGORIES_LOADABLE(UIAccessibilityElement_KIFAdditions)
 
 + (UIView *)viewContainingAccessibilityElement:(UIAccessibilityElement *)element;
 {
+    if([element isKindOfClass:NSClassFromString(@"UIAccessibilityElementMockView")]){
+        return (UIView *)[element performSelector:@selector(view)];
+    }
+    
     while (element && ![element isKindOfClass:[UIView class]]) {
         element = [element accessibilityContainer];
         
         if([element isKindOfClass:NSClassFromString(@"UITableViewCellAccessibilityElement")]){
             UITableViewCell *cell = [element performSelector:@selector(tableViewCell)];
-            
+
             //If the cell has a superview (has been loaded into the table) then the cell is the view we are after
             if(cell.superview)
                 element = (id)cell;
@@ -32,4 +36,5 @@ MAKE_CATEGORIES_LOADABLE(UIAccessibilityElement_KIFAdditions)
     
     return (UIView *)element;
 }
+
 @end

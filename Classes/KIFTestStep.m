@@ -173,7 +173,7 @@ typedef CGPoint KIFDisplacement;
     
     return [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
         UIAccessibilityElement *parentElement = [self _accessibilityElementWithLabel:parentLabel accessibilityValue:parentValue tappable:NO traits:UIAccessibilityTraitNone error:error];
-        UIView *parentElementView = [UIAccessibilityElement viewContainingAccessibilityElement:parentElement];    
+        UIView *parentView = [UIAccessibilityElement viewContainingAccessibilityElement:parentElement];    
         
         NSString *parentDescription = nil;
         if (parentValue.length)
@@ -185,9 +185,9 @@ typedef CGPoint KIFDisplacement;
             parentDescription = [NSString stringWithFormat:@"parent view with label \"%@\"", parentLabel];
         }
         
-        KIFTestWaitCondition(parentElementView, error, @"Failed to find %@", parentDescription);
+        KIFTestWaitCondition(parentView, error, @"Failed to find %@", parentDescription);
         
-        UIAccessibilityElement *childElement = [parentElementView accessibilityElementWithLabel:childLabel accessibilityValue:childValue traits:UIAccessibilityTraitNone];
+        UIAccessibilityElement *childElement = [parentView accessibilityElementWithLabel:childLabel accessibilityValue:childValue traits:UIAccessibilityTraitNone];
         NSString *childDescription = nil;
         if (childValue.length)
         {
