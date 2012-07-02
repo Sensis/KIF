@@ -22,11 +22,14 @@ MAKE_CATEGORIES_LOADABLE(UIAccessibilityElement_KIFAdditions)
         element = [element accessibilityContainer];
         
         if([element isKindOfClass:NSClassFromString(@"UITableViewCellAccessibilityElement")]){
-            element = [element performSelector:@selector(tableViewCell)];
+            UITableViewCell *cell = [element performSelector:@selector(tableViewCell)];
+            
+            //If the cell has a superview (has been loaded into the table) then the cell is the view we are after
+            if(cell.superview)
+                element = (id)cell;
         }
     }
     
     return (UIView *)element;
 }
-
 @end
