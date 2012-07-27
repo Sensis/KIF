@@ -16,8 +16,11 @@
 #import "UIView-KIFAdditions.h"
 #import "UIWindow-KIFAdditions.h"
 
-
+#if TARGET_IPHONE_SIMULATOR
+static NSTimeInterval KIFTestStepDefaultTimeout = 20.0;
+#else
 static NSTimeInterval KIFTestStepDefaultTimeout = 10.0;
+#endif
 
 @interface KIFTestStep ()
 
@@ -601,17 +604,18 @@ typedef CGPoint KIFDisplacement;
 
 + (id)stepToTapRowInTableViewWithAccessibilityLabel:(NSString*)tableViewLabel atIndexPath:(NSIndexPath *)indexPath
 {
-    NSString *description = [NSString stringWithFormat:@"Step to tap row %d in tableView with label %@", [indexPath row], tableViewLabel];
+    NSString *description = [NSString stringWithFormat:@"Step to tap %@ in tableView with label %@", [indexPath description], tableViewLabel];
     return [KIFTestStep stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
         UIAccessibilityElement *element = [[UIApplication sharedApplication] accessibilityElementWithLabel:tableViewLabel];
-        KIFTestCondition(element, error, @"View with label %@ not found", tableViewLabel);
+
+        KIFTestWaitCondition(element, error, @"View with label %@ not found", tableViewLabel);
         UITableView *tableView = (UITableView*)[UIAccessibilityElement viewContainingAccessibilityElement:element];
 
         KIFTestCondition([tableView isKindOfClass:[UITableView class]], error, @"Specified view is not a UITableView");
         KIFTestCondition(tableView, error, @"Table view with label '%@' not found", tableViewLabel);
 
         UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
-		KIFTestCondition(cell, error, @"Cell at indexPath '%@' not found", [indexPath description]);
+		KIFTestWaitCondition(cell, error, @"Cell at indexPath '%@' not found", [indexPath description]);
 
         CGRect cellFrame = [cell.contentView convertRect:[cell.contentView frame] toView:tableView];
         [tableView tapAtPoint:CGPointCenteredInRect(cellFrame)];
