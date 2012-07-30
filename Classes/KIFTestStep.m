@@ -17,9 +17,9 @@
 #import "UIWindow-KIFAdditions.h"
 
 #if TARGET_IPHONE_SIMULATOR
-static NSTimeInterval KIFTestStepDefaultTimeout = 20.0;
-#else
 static NSTimeInterval KIFTestStepDefaultTimeout = 10.0;
+#else
+static NSTimeInterval KIFTestStepDefaultTimeout = 20.0;
 #endif
 
 @interface KIFTestStep ()
