@@ -617,8 +617,7 @@ typedef CGPoint KIFDisplacement;
         UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
 		KIFTestWaitCondition(cell, error, @"Cell at indexPath '%@' not found", [indexPath description]);
 
-        CGRect cellFrame = [cell.contentView convertRect:[cell.contentView frame] toView:tableView];
-        [tableView tapAtPoint:CGPointCenteredInRect(cellFrame)];
+        [cell tapAtPoint:[cell tappablePointInRect:cell.bounds]];
 
         return KIFTestStepResultSuccess;
     }];
