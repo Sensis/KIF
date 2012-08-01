@@ -261,6 +261,7 @@ static void releaseInstance()
     [selectorStrings sortUsingSelector:@selector(compare:)];
     [selectorStrings enumerateObjectsUsingBlock:^(id selectorString, NSUInteger idx, BOOL *stop) {
         KIFTestScenario *scenario = (KIFTestScenario *)objc_msgSend(klass, NSSelectorFromString(selectorString));
+        scenario.description = [NSString stringWithFormat:@"%@ : %@", selectorString, scenario.description];
         [self addScenario:scenario];
     }];
     
