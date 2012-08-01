@@ -80,7 +80,7 @@ typedef void (^KIFTestControllerCompletionBlock)();
  @property failingScenarios
  @abstract The failed scenarios so far.
  */
-@property (nonatomic, readonly) NSMutableArray *failingScenarios;
+@property (nonatomic, readonly, retain) NSMutableArray *failingScenarios;
 
 /*!
  @method sharedInstance
