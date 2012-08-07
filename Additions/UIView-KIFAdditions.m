@@ -157,7 +157,10 @@
         for (NSInteger accessibilityElementIndex = 0; accessibilityElementIndex < accessibilityElementCount; accessibilityElementIndex++) {
             UIAccessibilityElement *subelement = [element accessibilityElementAtIndex:accessibilityElementIndex];
             
-            [elementStack addObject:subelement];
+            //Incase the element incorrectly implements the UIAccessibilityContainer Protocol and returns nil for the index
+            if(subelement){
+                [elementStack addObject:subelement];
+            }
         }
     }
         
