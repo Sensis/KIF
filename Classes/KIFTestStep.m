@@ -665,8 +665,11 @@ typedef CGPoint KIFDisplacement;
 }
 
 #define NUM_POINTS_IN_SWIPE_PATH 20
++ (id)stepToSwipeViewWithAccessibilityLabel:(NSString *)label inDirection:(KIFSwipeDirection)direction{
+    return [self stepToSwipeViewWithAccessibilityLabel:label inDirection:direction offsetFromCenter:CGPointZero];
+}
 
-+ (id)stepToSwipeViewWithAccessibilityLabel:(NSString *)label inDirection:(KIFSwipeDirection)direction
++ (id)stepToSwipeViewWithAccessibilityLabel:(NSString *)label inDirection:(KIFSwipeDirection)direction offsetFromCenter:(CGPoint)offset
 {
     // The original version of this came from http://groups.google.com/group/kif-framework/browse_thread/thread/df3f47eff9f5ac8c
     NSString *directionDescription = nil;
@@ -702,6 +705,8 @@ typedef CGPoint KIFDisplacement;
 
         CGRect elementFrame = [viewToSwipe.window convertRect:element.accessibilityFrame toView:viewToSwipe];
         CGPoint swipeStart = CGPointCenteredInRect(elementFrame);
+        swipeStart.x += offset.x;
+        swipeStart.y += offset.y;
 
         KIFDisplacement swipeDisplacement = [self _displacementForSwipingInDirection:direction];
 
