@@ -1057,7 +1057,7 @@ typedef CGPoint KIFDisplacement;
         }
         
         // Give the scroll view a small amount of time to perform the scroll.
-        CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.3, false);
+        CFRunLoopRunInMode(kCFRunLoopDefaultMode, 1., false);
     }
     
     if ([[UIApplication sharedApplication] isIgnoringInteractionEvents]) {
