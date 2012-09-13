@@ -26,6 +26,9 @@ static NSTimeInterval KIFTestStepDefaultTimeout = 20.0;
 
 @property (nonatomic, copy) KIFTestStepExecutionBlock executionBlock;
 @property (nonatomic, retain) id notificationObject;
+@property BOOL observingForNotification;
+@property (nonatomic, retain) KIFTestStep *childStep;
+
 
 + (BOOL)_isUserInteractionEnabledForView:(UIView *)view;
 
@@ -49,6 +52,7 @@ typedef CGPoint KIFDisplacement;
 @synthesize notificationObject;
 @synthesize notificationOccurred;
 @synthesize timeout;
+@synthesize childStep;
 
 #pragma mark Class Methods
 
@@ -305,8 +309,8 @@ typedef CGPoint KIFDisplacement;
         return KIFTestStepResultSuccess;
     }];
     
-    // Make sure that the timeout is set so that it doesn't timeout prematurely.
-    step.timeout = interval + 1.0;
+    // Increase timeout by interval so that the step doesn't timeout prematurely.
+    step.timeout += ceil(interval);
     
     return step;
 }
@@ -337,6 +341,30 @@ typedef CGPoint KIFDisplacement;
 							 observingNotificationStep.notificationName);
         return KIFTestStepResultSuccess;
     }];
+    return step;
+}
+
++ (id)stepToWaitForNotificationName:(NSString *)name object:(id)object whileExecutingStep:(KIFTestStep *)childStep;
+{
+    NSString *description = [NSString stringWithFormat:@"Wait for notification \"%@\" while executing child step \"%@\"", name, childStep];
+    
+    KIFTestStep *step = [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {  
+        if (!step.observingForNotification) {            
+            step.notificationName = name;
+            step.notificationObject = object; 
+            step.observingForNotification = YES;
+            [[NSNotificationCenter defaultCenter] addObserver:step selector:@selector(_onObservedNotification:) name:name object:object];
+        }
+        
+        // Execute the step we are observing for changes
+        KIFTestStepResult result = [step.childStep executeAndReturnError:error];
+        KIFTestWaitCondition(result != KIFTestStepResultWait, error, @"Waiting for completion of child step \"%@\"", step.childStep);
+        
+        // Wait for the actual notification
+        KIFTestWaitCondition(step.notificationOccurred, error, @"Waiting for notification \"%@\"", name);
+        return KIFTestStepResultSuccess;
+    }];    
+    step.childStep = childStep;    
     return step;
 }
 
@@ -607,13 +635,13 @@ typedef CGPoint KIFDisplacement;
     NSString *description = [NSString stringWithFormat:@"Step to tap %@ in tableView with label %@", [indexPath description], tableViewLabel];
     return [KIFTestStep stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
         UIAccessibilityElement *element = [[UIApplication sharedApplication] accessibilityElementWithLabel:tableViewLabel];
-
+        
         KIFTestWaitCondition(element, error, @"View with label %@ not found", tableViewLabel);
         UITableView *tableView = (UITableView*)[UIAccessibilityElement viewContainingAccessibilityElement:element];
-
+        
         KIFTestCondition([tableView isKindOfClass:[UITableView class]], error, @"Specified view is not a UITableView");
         KIFTestCondition(tableView, error, @"Table view with label '%@' not found", tableViewLabel);
-
+        
         UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
         if (!cell &&
             [indexPath section] < [tableView numberOfSections] &&
@@ -625,9 +653,9 @@ typedef CGPoint KIFDisplacement;
         }
         
 		KIFTestWaitCondition(cell, error, @"Cell at indexPath '%@' not found", [indexPath description]);
-
+        
         [cell tapAtPoint:[cell tappablePointInRect:cell.bounds]];
-
+        
         return KIFTestStepResultSuccess;
     }];
 }
@@ -659,7 +687,6 @@ typedef CGPoint KIFDisplacement;
         
         // Hidden views count as absent
         KIFTestWaitCondition([view isHidden], error, @"Accessibility element with label \"%@\" is visible and not hidden.", absentChildLabel);
-        
         
         return KIFTestStepResultSuccess;
     }];
@@ -721,6 +748,17 @@ typedef CGPoint KIFDisplacement;
         }
 
         [viewToSwipe dragAlongPathWithPoints:swipePath count:NUM_POINTS_IN_SWIPE_PATH];
+
+        return KIFTestStepResultSuccess;
+    }];
+}
+
++ (id)stepToWaitForFirstResponderWithAccessibilityLabel:(NSString *)label;
+{
+    NSString *description = [NSString stringWithFormat:@"Verify that the first responder is the view with accessibility label '%@'", label];
+    return [KIFTestStep stepWithDescription:description executionBlock:^KIFTestStepResult(KIFTestStep *step, NSError *__autoreleasing *error) {
+        UIResponder *firstResponder = [[[UIApplication sharedApplication] keyWindow] firstResponder];
+        KIFTestWaitCondition([[firstResponder accessibilityLabel] isEqualToString:label], error, @"Expected accessibility label for first responder to be '%@', got '%@'", label, [firstResponder accessibilityLabel]);
 
         return KIFTestStepResultSuccess;
     }];
@@ -807,6 +845,8 @@ typedef CGPoint KIFDisplacement;
     notificationName = nil;
     [notificationObject release];
     notificationObject = nil;
+    [childStep release];
+    childStep = nil;
     
     [super dealloc];
 }
@@ -1025,7 +1065,7 @@ typedef CGPoint KIFDisplacement;
                 
             // Check the traits, too.
             } else if (traits != UIAccessibilityTraitNone && [[UIApplication sharedApplication] accessibilityElementWithLabel:label accessibilityValue:nil traits:UIAccessibilityTraitNone]) {
-                *error = [[[NSError alloc] initWithDomain:@"KIFTest" code:KIFTestStepResultFailure userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Found an accessibility element with the label \"%@\", but not with the traits \"%d\"", label, traits], NSLocalizedDescriptionKey, nil]] autorelease];
+                *error = [[[NSError alloc] initWithDomain:@"KIFTest" code:KIFTestStepResultFailure userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Found an accessibility element with the label \"%@\", but not with the traits \"%llu\"", label, traits], NSLocalizedDescriptionKey, nil]] autorelease];
                 
             } else {
                 *error = [[[NSError alloc] initWithDomain:@"KIFTest" code:KIFTestStepResultFailure userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to find accessibility element with the label \"%@\"", label], NSLocalizedDescriptionKey, nil]] autorelease];
@@ -1052,7 +1092,7 @@ typedef CGPoint KIFDisplacement;
         if ((UIAccessibilityElement *)view == element) {
             [scrollView scrollViewToVisible:view animated:YES];
         } else {
-            CGRect elementFrame = [view.window convertRect:element.accessibilityFrame toView:scrollView];            
+            CGRect elementFrame = [view.window convertRect:element.accessibilityFrame toView:scrollView];
             [scrollView setContentOffset:CGPointMake(0,  elementFrame.origin.y) animated:YES];
         }
         
