@@ -692,6 +692,29 @@ typedef CGPoint KIFDisplacement;
     }];
 }
 
++ (KIFTestStep*) stepToRotateToInterfaceOrientation: (UIInterfaceOrientation) toInterfaceOrientation {
+    
+    NSString* orientation = UIInterfaceOrientationIsLandscape(toInterfaceOrientation) ? @"Landscape" : @"Portrait";
+    return [KIFTestStep stepWithDescription: [NSString stringWithFormat: @"Rotate to orientation %@", orientation]
+                             executionBlock: ^KIFTestStepResult(KIFTestStep *step, NSError *__autoreleasing *error) {
+                                 if( [UIApplication sharedApplication].statusBarOrientation != toInterfaceOrientation ) {
+                                     UIDevice* device = [UIDevice currentDevice];
+                                     SEL message = NSSelectorFromString(@"setOrientation:");
+                                     
+                                     if( [device respondsToSelector: message] ) {
+                                         NSMethodSignature* signature = [UIDevice instanceMethodSignatureForSelector: message];
+                                         NSInvocation* invocation = [NSInvocation invocationWithMethodSignature: signature];
+                                         [invocation setTarget: device];
+                                         [invocation setSelector: message];
+                                         [invocation setArgument: (void*)(&toInterfaceOrientation) atIndex: 2];
+                                         [invocation invoke];
+                                     }
+                                 }
+                                 
+                                 return KIFTestStepResultSuccess;
+                             }];
+}
+
 #define NUM_POINTS_IN_SWIPE_PATH 20
 + (id)stepToSwipeViewWithAccessibilityLabel:(NSString *)label inDirection:(KIFSwipeDirection)direction{
     return [self stepToSwipeViewWithAccessibilityLabel:label inDirection:direction offsetFromCenter:CGPointZero];

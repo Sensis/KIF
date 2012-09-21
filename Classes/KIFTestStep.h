@@ -238,6 +238,10 @@ typedef KIFTestStepResult (^KIFTestStepExecutionBlock)(KIFTestStep *step, NSErro
                                               value:(NSString *)parentValue
        notContainingChildViewWithAccessibilityLabel:(NSString *)childLabel
                                          childValue:(NSString *)childValue;
+
+
++ (KIFTestStep*) stepToRotateToInterfaceOrientation: (UIInterfaceOrientation) toInterfaceOrientation;
+    
 /*!
  @method stepToWaitForAbsenceOfViewWithAccessibilityLabel:
  @abstract A step that waits until a view or accessibility element is no longer present.
