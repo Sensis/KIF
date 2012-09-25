@@ -22,6 +22,13 @@ static NSTimeInterval KIFTestStepDefaultTimeout = 10.0;
 static NSTimeInterval KIFTestStepDefaultTimeout = 20.0;
 #endif
 
+typedef enum {
+    KIFKeyboardTypeAny = 0,
+    KIFKeyboardTypeDefaultIPhone,
+    KIFKeyboardTypeDefaultIPad,
+    KIFKeyboardTypeNumberPad
+} KIFKeyboardType;
+
 @interface KIFTestStep ()
 
 @property (nonatomic, copy) KIFTestStepExecutionBlock executionBlock;
@@ -41,6 +48,7 @@ static NSTimeInterval KIFTestStepDefaultTimeout = 20.0;
 typedef CGPoint KIFDisplacement;
 + (KIFDisplacement)_displacementForSwipingInDirection:(KIFSwipeDirection)direction;
 
++ (BOOL)_isKeyboardDisplayedWithType:(KIFKeyboardType)keyboardType error:(NSError **)error;
 @end
 
 
@@ -488,8 +496,7 @@ typedef CGPoint KIFDisplacement;
         
         KIFTestWaitCondition([view isDescendantOfFirstResponder], error, @"Failed to make the view with accessibility label \"%@\" the first responder. First responder is %@", label, [[[UIApplication sharedApplication] keyWindow] firstResponder]);
         
-        UIAccessibilityElement *keyboardSpaceBar = [self _accessibilityElementWithLabel:@"space" accessibilityValue:nil tappable:YES traits:UIAccessibilityTraitKeyboardKey error:error];
-        KIFTestWaitCondition(keyboardSpaceBar, error, @"Failed to find keyboard key 'space' to verify keyboard has displayed");
+        KIFTestWaitCondition([self _isKeyboardDisplayedWithType:KIFKeyboardTypeAny error:error], error, @"Failed to verify keyboard has displayed");
 
         for (NSUInteger characterIndex = 0; characterIndex < [text length]; characterIndex++) {
             NSString *characterString = [text substringWithRange:NSMakeRange(characterIndex, 1)];
@@ -1181,6 +1188,59 @@ typedef CGPoint KIFDisplacement;
         default:
             return CGPointZero;
     }
+}
+
+
++ (BOOL)_isKeyboardDisplayedWithType:(KIFKeyboardType)keyboardType error:(NSError **)error;
+{
+    switch (keyboardType)
+    {
+        case KIFKeyboardTypeDefaultIPhone:
+        case KIFKeyboardTypeDefaultIPad:
+        {
+            UIAccessibilityElement *keyboardSpaceBar = [self _accessibilityElementWithLabel:@"space"
+                                                                         accessibilityValue:nil
+                                                                                   tappable:YES
+                                                                                     traits:UIAccessibilityTraitKeyboardKey
+                                                                                      error:error];
+            
+            if(!keyboardSpaceBar)
+                return NO;
+            CGSize size = keyboardSpaceBar.accessibilityFrame.size;
+            CGSize expectedSize = (keyboardType == KIFKeyboardTypeDefaultIPhone) ? CGSizeMake(160.,42.) : CGSizeMake(340.,60.);
+            if(size.width != expectedSize.width || size.height != expectedSize.height)
+               return NO;
+            
+            return YES;
+        }
+
+        case KIFKeyboardTypeNumberPad:
+        {
+            UIAccessibilityElement *keypadZeroKey = [self _accessibilityElementWithLabel:@"0"
+                                                                         accessibilityValue:nil
+                                                                                   tappable:YES
+                                                                                     traits:UIAccessibilityTraitKeyboardKey
+                                                                                      error:error];
+            
+            if(!keypadZeroKey)
+                return NO;
+            CGSize size = keypadZeroKey.accessibilityFrame.size;
+            if(size.width != 110. || size.height != 54.)
+                return NO;
+            
+            return YES;
+        }
+        
+        case KIFKeyboardTypeAny:
+        {
+            return
+            [self _isKeyboardDisplayedWithType:KIFKeyboardTypeDefaultIPhone error:error] ||
+            [self _isKeyboardDisplayedWithType:KIFKeyboardTypeDefaultIPad error:error] ||
+            [self _isKeyboardDisplayedWithType:KIFKeyboardTypeNumberPad error:error];
+        }
+    }
+    
+    return NO;
 }
 
 @end
