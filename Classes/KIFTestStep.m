@@ -488,9 +488,9 @@ typedef CGPoint KIFDisplacement;
         
         KIFTestWaitCondition([view isDescendantOfFirstResponder], error, @"Failed to make the view with accessibility label \"%@\" the first responder. First responder is %@", label, [[[UIApplication sharedApplication] keyWindow] firstResponder]);
         
-        // Wait for the keyboard
-        CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.5, false);
-        
+        UIAccessibilityElement *keyboardSpaceBar = [self _accessibilityElementWithLabel:@"space" accessibilityValue:nil tappable:YES traits:UIAccessibilityTraitKeyboardKey error:error];
+        KIFTestWaitCondition(keyboardSpaceBar, error, @"Failed to find keyboard key 'space' to verify keyboard has displayed");
+
         for (NSUInteger characterIndex = 0; characterIndex < [text length]; characterIndex++) {
             NSString *characterString = [text substringWithRange:NSMakeRange(characterIndex, 1)];
             
