@@ -1245,7 +1245,7 @@ typedef CGPoint KIFDisplacement;
                 return NO;
             CGSize size = keypadZeroKey.accessibilityFrame.size;
             CGSize expectedSize = keyboardKeySizesForOrientation[keyboardType];
-            if(size.width != expectedSize.width || size.height != expectedSize.width)
+            if(size.width != expectedSize.width || size.height != expectedSize.height)
                 return NO;
             
             return YES;
