@@ -23,10 +23,12 @@ static NSTimeInterval KIFTestStepDefaultTimeout = 20.0;
 #endif
 
 typedef enum {
-    KIFKeyboardTypeAny = 0,
-    KIFKeyboardTypeDefaultIPhone,
-    KIFKeyboardTypeDefaultIPad,
-    KIFKeyboardTypeNumberPad
+    KIFKeyboardTypeDefaultIPhonePortrait = 0,
+    KIFKeyboardTypeDefaultIPhoneLandscape,
+    KIFKeyboardTypeDefaultIPadPortrait,
+    KIFKeyboardTypeDefaultIPadLandscape,
+    KIFKeyboardTypeNumberPad,
+    KIFKeyboardTypeAny,
 } KIFKeyboardType;
 
 @interface KIFTestStep ()
@@ -496,8 +498,15 @@ typedef CGPoint KIFDisplacement;
         
         KIFTestWaitCondition([view isDescendantOfFirstResponder], error, @"Failed to make the view with accessibility label \"%@\" the first responder. First responder is %@", label, [[[UIApplication sharedApplication] keyWindow] firstResponder]);
         
-        KIFTestWaitCondition([self _isKeyboardDisplayedWithType:KIFKeyboardTypeAny error:error], error, @"Failed to verify keyboard has displayed");
-
+        NSDate *keyboardWaitDate = [NSDate date];
+        BOOL isKeyboardDisplayed = [self _isKeyboardDisplayedWithType:KIFKeyboardTypeAny error:error];
+        while (!isKeyboardDisplayed && [[NSDate date] timeIntervalSinceDate:keyboardWaitDate] < KIFTestStepDefaultTimeout)
+        {
+            [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+            isKeyboardDisplayed = [self _isKeyboardDisplayedWithType:KIFKeyboardTypeAny error:error];
+        }
+        KIFTestCondition(isKeyboardDisplayed, error, @"Failed to find a on screen keyboard");
+        
         for (NSUInteger characterIndex = 0; characterIndex < [text length]; characterIndex++) {
             NSString *characterString = [text substringWithRange:NSMakeRange(characterIndex, 1)];
             
@@ -1191,12 +1200,22 @@ typedef CGPoint KIFDisplacement;
 }
 
 
+
 + (BOOL)_isKeyboardDisplayedWithType:(KIFKeyboardType)keyboardType error:(NSError **)error;
 {
+    static CGSize keyboardKeySizesForOrientation [] = {
+        {160.,42.},//IPhonePortrait
+        {0.,0.},//IPhoneLandscape
+        {340.,60.},//IPadPortrait
+        {79.,453.},//IPadLandscape
+        {110.,54.},//NumberPad
+    };
     switch (keyboardType)
     {
-        case KIFKeyboardTypeDefaultIPhone:
-        case KIFKeyboardTypeDefaultIPad:
+        case KIFKeyboardTypeDefaultIPhonePortrait:
+        case KIFKeyboardTypeDefaultIPhoneLandscape:
+        case KIFKeyboardTypeDefaultIPadPortrait:
+        case KIFKeyboardTypeDefaultIPadLandscape:
         {
             UIAccessibilityElement *keyboardSpaceBar = [self _accessibilityElementWithLabel:@"space"
                                                                          accessibilityValue:nil
@@ -1207,7 +1226,7 @@ typedef CGPoint KIFDisplacement;
             if(!keyboardSpaceBar)
                 return NO;
             CGSize size = keyboardSpaceBar.accessibilityFrame.size;
-            CGSize expectedSize = (keyboardType == KIFKeyboardTypeDefaultIPhone) ? CGSizeMake(160.,42.) : CGSizeMake(340.,60.);
+            CGSize expectedSize = keyboardKeySizesForOrientation[keyboardType];
             if(size.width != expectedSize.width || size.height != expectedSize.height)
                return NO;
             
@@ -1225,7 +1244,8 @@ typedef CGPoint KIFDisplacement;
             if(!keypadZeroKey)
                 return NO;
             CGSize size = keypadZeroKey.accessibilityFrame.size;
-            if(size.width != 110. || size.height != 54.)
+            CGSize expectedSize = keyboardKeySizesForOrientation[keyboardType];
+            if(size.width != expectedSize.width || size.height != expectedSize.width)
                 return NO;
             
             return YES;
@@ -1234,8 +1254,9 @@ typedef CGPoint KIFDisplacement;
         case KIFKeyboardTypeAny:
         {
             return
-            [self _isKeyboardDisplayedWithType:KIFKeyboardTypeDefaultIPhone error:error] ||
-            [self _isKeyboardDisplayedWithType:KIFKeyboardTypeDefaultIPad error:error] ||
+            [self _isKeyboardDisplayedWithType:KIFKeyboardTypeDefaultIPhonePortrait error:error] ||
+            [self _isKeyboardDisplayedWithType:KIFKeyboardTypeDefaultIPadPortrait error:error] ||
+            [self _isKeyboardDisplayedWithType:KIFKeyboardTypeDefaultIPadLandscape error:error] ||
             [self _isKeyboardDisplayedWithType:KIFKeyboardTypeNumberPad error:error];
         }
     }
