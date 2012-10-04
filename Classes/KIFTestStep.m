@@ -186,7 +186,8 @@ typedef CGPoint KIFDisplacement;
                                      childExistence:(BOOL)requiresChild
 {
     
-    NSString *description = [NSString stringWithFormat:@"Wait for parent view with accessibility label \"%@\" %@ containing child with accessibility label \"%@\"", parentLabel, requiresChild ? @"" : @"not", childLabel];
+    NSString *description = [NSString stringWithFormat:@"Wait for parent view with accessibility label \"%@\" with value \"%@\" %@ containing child with accessibility label \"%@\" with value \"%@\"",
+                    parentLabel, parentValue, requiresChild ? @"" : @"not", childLabel, childValue];
     
     return [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
         UIAccessibilityElement *parentElement = [self _accessibilityElementWithLabel:parentLabel accessibilityValue:parentValue tappable:NO traits:UIAccessibilityTraitNone error:error];
