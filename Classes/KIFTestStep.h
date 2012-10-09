@@ -468,6 +468,24 @@ typedef KIFTestStepResult (^KIFTestStepExecutionBlock)(KIFTestStep *step, NSErro
 + (id)stepToTapRowInTableViewWithAccessibilityLabel:(NSString*)tableViewLabel atIndexPath:(NSIndexPath *)indexPath;
 
 /*!
+ @method stepToTapViewWithParentAccessibilityLabel:childViewWithAccessibilityLabel:
+ @abstract A step that taps a view or accessibility element with a parent and child matching accessibility labels
+ @discussionThe view or accessibility element with the given label is found in the view hierarchy. Once the element is present and tappable, a tappable event will be fired. Note that the view does not necessarily have to be visible on the screen, and may be behind another view or offscreen. Views with their hidden property set to YES are ignored.
+ @param label The accessibility label of the parent element to wait for.
+ @param value The accessibility value of the parent element
+ @param childLabel The accessibility label of the child element to wait for.
+ @prarm childValue The accessibility value of the child element
+ @result A configured test step.
+ */
++ (id)stepToTapViewWithParentAccessibilityLabel:(NSString *)parentLabel
+                childViewWithAccessibilityLabel:(NSString *)childLabel;
+
++ (id)stepToTapViewWithParentAccessibilityLabel:(NSString *)parentLabel
+                                          value:(NSString *)parentValue
+                childViewWithAccessibilityLabel:(NSString *)childLabel
+                                     childValue:(NSString *)childValue;
+
+/*!
  @enum KIFSwipeDirection
  @abstract Directions in which to swipe.
  @constant KIFSwipeDirectionRight Swipe to the right.

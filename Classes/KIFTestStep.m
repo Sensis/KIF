@@ -444,6 +444,104 @@ typedef CGPoint KIFDisplacement;
     }];
 }
 
++ (id)stepToTapViewWithParentAccessibilityLabel:(NSString *)parentLabel childViewWithAccessibilityLabel:(NSString *)childLabel
+{
+    return [self stepToTapViewWithParentAccessibilityLabel:parentLabel
+                                                     value:nil
+                           childViewWithAccessibilityLabel:childLabel
+                                                childValue:nil];
+}
+
++ (id)stepToTapViewWithParentAccessibilityLabel:(NSString *)parentLabel
+                                          value:(NSString *)parentValue
+                childViewWithAccessibilityLabel:(NSString *)childLabel
+                                     childValue:(NSString *)childValue
+{
+    return [self stepToTapViewWithParentAccessibilityLabel:parentLabel
+                                                     value:parentValue
+                           childViewWithAccessibilityLabel:childLabel
+                                                childValue:childValue
+                                          offsetFromCenter:CGPointZero];
+}
+
++ (id)stepToTapViewWithParentAccessibilityLabel:(NSString *)parentLabel
+                                          value:(NSString *)parentValue
+                childViewWithAccessibilityLabel:(NSString *)childLabel
+                                     childValue:(NSString *)childValue
+                               offsetFromCenter:(CGPoint)offsetFromCenter
+{
+    NSString *description = [NSString stringWithFormat:@"Wait for parent view with accessibility label \"%@\" with value \"%@\" tapping child with accessibility label \"%@\" with value \"%@\"",
+                                                       parentLabel, parentValue, childLabel, childValue];
+
+    // After tapping the view we want to wait a short period to allow things to settle (animations and such). We can't do this using CFRunLoopRunInMode() because certain things, such as the built-in media picker, do things with the run loop that are not compatible with this kind of wait. Instead we leverage the way KIF hooks into the existing run loop by returning "wait" results for the desired period.
+    const NSTimeInterval quiesceWaitInterval = 0.5;
+    __block NSTimeInterval quiesceStartTime = 0.0;
+    __block UIView *childView = nil;
+
+    return [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
+        UIAccessibilityElement *parentElement = [self _accessibilityElementWithLabel:parentLabel accessibilityValue:parentValue tappable:NO traits:UIAccessibilityTraitNone error:error];
+        UIView *parentView = [UIAccessibilityElement viewContainingAccessibilityElement:parentElement];
+
+        // Ensure Parent and Child elements exist
+        NSString *parentDescription = nil;
+        if (parentValue.length)
+        {
+            parentDescription = [NSString stringWithFormat:@"parent view with label \"%@\" and value \"%@\"", parentLabel, parentValue];
+        }
+        else
+        {
+            parentDescription = [NSString stringWithFormat:@"parent view with label \"%@\"", parentLabel];
+        }
+
+        KIFTestWaitCondition(parentView, error, @"Failed to find %@", parentDescription);
+
+        UIAccessibilityElement *childElement = [parentView accessibilityElementWithLabel:childLabel accessibilityValue:childValue traits:UIAccessibilityTraitNone];
+        NSString *childDescription = nil;
+        if (childValue.length)
+        {
+            childDescription = [NSString stringWithFormat:@"child view with label \"%@\" and value \"%@\" within %@", childLabel, parentValue, parentDescription];
+        }
+        else
+        {
+            childDescription = [NSString stringWithFormat:@"child view with label \"%@\" within %@", childLabel, parentDescription];
+        }
+
+        KIFTestWaitCondition(childElement, error, @"Failed to find %@", childDescription);
+
+        // Tapping
+        // If we've already tapped the view and stored it to a variable, and we've waited for the quiesce time to elapse, then we're done.
+        if (childView)
+        {
+            KIFTestWaitCondition(([NSDate timeIntervalSinceReferenceDate] - quiesceStartTime) >= quiesceWaitInterval, error, @"Waiting for view to become the first responder.");
+            return KIFTestStepResultSuccess;
+        }
+
+        childView = [UIAccessibilityElement viewContainingAccessibilityElement:childElement];
+
+        if (![self _isUserInteractionEnabledForView:childView]) {
+            if (error) {
+                *error = [[[NSError alloc] initWithDomain:@"KIFTest" code:KIFTestStepResultFailure userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"View with accessibility label \"%@\" is not enabled for interaction", childLabel], NSLocalizedDescriptionKey, nil]] autorelease];
+            }
+            return KIFTestStepResultWait;
+        }
+
+        CGRect elementFrame = [childView.window convertRect:childElement.accessibilityFrame toView:childView];
+        CGPoint tappablePointInElement = [childView tappablePointInRect:elementFrame];
+        tappablePointInElement.x += offsetFromCenter.x;
+        tappablePointInElement.y += offsetFromCenter.y;
+
+        // This is mostly redundant of the test in _accessibilityElementWithLabel:
+        KIFTestWaitCondition(!isnan(tappablePointInElement.x), error, @"The element with accessibility label %@ is not tappable", childLabel);
+        [childView tapAtPoint:tappablePointInElement];
+
+        KIFTestCondition(![childView canBecomeFirstResponder] || [childView isDescendantOfFirstResponder], error, @"Failed to make the view %@ which contains the accessibility element \"%@\" into the first responder", childView, childLabel);
+
+        quiesceStartTime = [NSDate timeIntervalSinceReferenceDate];
+
+        KIFTestWaitCondition(NO, error, @"Waiting for the view to settle.");
+    }];
+}
+
 + (id)stepToTapScreenAtPoint:(CGPoint)screenPoint;
 {
     NSString *description = [NSString stringWithFormat:@"Tap screen at point \"%@\"", NSStringFromCGPoint(screenPoint)];
