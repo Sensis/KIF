@@ -15,6 +15,7 @@
 #import "UITouch-KIFAdditions.h"
 #import "UIView-KIFAdditions.h"
 #import "UIWindow-KIFAdditions.h"
+#import <objc/runtime.h>
 
 #if TARGET_IPHONE_SIMULATOR
 static NSTimeInterval KIFTestStepDefaultTimeout = 10.0;
@@ -768,8 +769,10 @@ typedef CGPoint KIFDisplacement;
         }
         
 		KIFTestWaitCondition(cell, error, @"Cell at indexPath '%@' not found", [indexPath description]);
+        CGPoint tapPoint = [cell tappablePointInRect:cell.bounds];
+        KIFTestWaitCondition(!CGPointEqualToPoint(tapPoint, CGPointMake(NAN, NAN)),error, @"Cell at indexPath '%@' was not tappable", [indexPath description]);
         
-        [cell tapAtPoint:[cell tappablePointInRect:cell.bounds]];
+        [cell tapAtPoint:tapPoint];
         
         return KIFTestStepResultSuccess;
     }];
@@ -1305,8 +1308,16 @@ typedef CGPoint KIFDisplacement;
     static CGSize keyboardKeySizesForOrientation [] = {
         {160.,42.},//IPhonePortrait
         {0.,0.},//IPhoneLandscape
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 60000
+        {408.,60.},//IPadPortrait
+#else
         {340.,60.},//IPadPortrait
+#endif
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 60000
+        {79.,543.},//IPadLandscape
+#else
         {79.,453.},//IPadLandscape
+#endif
         {110.,54.},//NumberPad
     };
     switch (keyboardType)
