@@ -1301,25 +1301,28 @@ typedef CGPoint KIFDisplacement;
     }
 }
 
+static CGSize keyboardKeySizesForOrientationPReiOS6 [] = {
+    {160.,42.},//IPhonePortrait
+    {0.,0.},//IPhoneLandscape
+    {340.,60.},//IPadPortrait
+    {79.,453.},//IPadLandscape
+    {110.,54.},//NumberPad
+};
+
+static CGSize keyboardKeySizesForOrientationiOS6 [] = {
+    {160.,42.},//IPhonePortrait
+    {0.,0.},//IPhoneLandscape
+    {340.,60.},//IPadPortrait
+    {79.,453.},//IPadLandscape
+    {110.,54.},//NumberPad
+};
 
 
 + (BOOL)_isKeyboardDisplayedWithType:(KIFKeyboardType)keyboardType error:(NSError **)error;
 {
-    static CGSize keyboardKeySizesForOrientation [] = {
-        {160.,42.},//IPhonePortrait
-        {0.,0.},//IPhoneLandscape
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 60000
-        {408.,60.},//IPadPortrait
-#else
-        {340.,60.},//IPadPortrait
-#endif
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 60000
-        {79.,543.},//IPadLandscape
-#else
-        {79.,453.},//IPadLandscape
-#endif
-        {110.,54.},//NumberPad
-    };
+    CGSize *keyboardKeySizesForOrientation = ([[[UIDevice currentDevice] systemVersion] floatValue]  > 6.0) ?
+        keyboardKeySizesForOrientationiOS6 : keyboardKeySizesForOrientationPReiOS6;
+    
     switch (keyboardType)
     {
         case KIFKeyboardTypeDefaultIPhonePortrait:
@@ -1338,7 +1341,10 @@ typedef CGPoint KIFDisplacement;
             CGSize size = keyboardSpaceBar.accessibilityFrame.size;
             CGSize expectedSize = keyboardKeySizesForOrientation[keyboardType];
             if(size.width != expectedSize.width || size.height != expectedSize.height)
-               return NO;
+            {
+                NSLog(@"Keyboard space size not recognized: CGSize: %@",NSStringFromCGSize(size));
+                return NO;
+            }
             
             return YES;
         }
