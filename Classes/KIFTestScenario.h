@@ -28,6 +28,14 @@
 }
 
 /*!
+ @property methodName
+ @abstract The original method used to construct the scenario
+ @discussion 
+ */
+@property (nonatomic, retain) NSString *methodName;
+
+
+/*!
  @property description
  @abstract A description of what the scenario tests.
  @discussion This should be a thorough description of what the scenario is testing so that if the test fails it is clear which test it was.

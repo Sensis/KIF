@@ -261,6 +261,7 @@ static void releaseInstance()
     [selectorStrings sortUsingSelector:@selector(compare:)];
     [selectorStrings enumerateObjectsUsingBlock:^(id selectorString, NSUInteger idx, BOOL *stop) {
         KIFTestScenario *scenario = (KIFTestScenario *)objc_msgSend(klass, NSSelectorFromString(selectorString));
+        scenario.methodName = selectorString;
         scenario.description = [NSString stringWithFormat:@"%@ : %@", selectorString, scenario.description];
         [self addScenario:scenario];
     }];
@@ -573,6 +574,11 @@ static void releaseInstance()
         [failingScenarios enumerateObjectsUsingBlock:^(KIFTestScenario* failingScenario, NSUInteger idx, BOOL *stop) {
             KIFLog(@"%@",failingScenario.description);
         }];
+        NSMutableArray* methods = [NSMutableArray array];
+        [failingScenarios enumerateObjectsUsingBlock:^(KIFTestScenario* failingScenario, NSUInteger idx, BOOL *stop) {
+            [methods addObject:failingScenario.methodName];
+        }];
+        KIFLog(@"RE-RUN: %@",[methods componentsJoinedByString:@","]);
     }
     KIFLog(@"KIF TEST RUN FINISHED: %d failures (duration %.2fs)", [failingScenarios count], -[self.testSuiteStartDate timeIntervalSinceNow]);
     KIFLogSeparator();
