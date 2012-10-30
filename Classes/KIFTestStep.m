@@ -1312,15 +1312,15 @@ static CGSize keyboardKeySizesForOrientationPReiOS6 [] = {
 static CGSize keyboardKeySizesForOrientationiOS6 [] = {
     {160.,42.},//IPhonePortrait
     {0.,0.},//IPhoneLandscape
-    {340.,60.},//IPadPortrait
-    {79.,453.},//IPadLandscape
+    {408.,60.},//IPadPortrait
+    {79.,543.},//IPadLandscape
     {110.,54.},//NumberPad
 };
 
 
 + (BOOL)_isKeyboardDisplayedWithType:(KIFKeyboardType)keyboardType error:(NSError **)error;
 {
-    CGSize *keyboardKeySizesForOrientation = ([[[UIDevice currentDevice] systemVersion] floatValue]  > 6.0) ?
+    CGSize *keyboardKeySizesForOrientation = ([[[UIDevice currentDevice] systemVersion] floatValue]  >= 6.0) ?
         keyboardKeySizesForOrientationiOS6 : keyboardKeySizesForOrientationPReiOS6;
     
     switch (keyboardType)
@@ -1341,10 +1341,7 @@ static CGSize keyboardKeySizesForOrientationiOS6 [] = {
             CGSize size = keyboardSpaceBar.accessibilityFrame.size;
             CGSize expectedSize = keyboardKeySizesForOrientation[keyboardType];
             if(size.width != expectedSize.width || size.height != expectedSize.height)
-            {
-                NSLog(@"Keyboard space size not recognized: CGSize: %@",NSStringFromCGSize(size));
                 return NO;
-            }
             
             return YES;
         }
