@@ -1309,7 +1309,7 @@ static CGSize keyboardKeySizesForOrientationPReiOS6 [] = {
     {110.,54.},//NumberPad
 };
 
-static CGSize keyboardKeySizesForOrientationiOS6 [] = {
+static CGSize keyboardKeySizesForOrientationiOS5Plus [] = {
     {160.,42.},//IPhonePortrait
     {0.,0.},//IPhoneLandscape
     {408.,60.},//IPadPortrait
@@ -1320,8 +1320,8 @@ static CGSize keyboardKeySizesForOrientationiOS6 [] = {
 
 + (BOOL)_isKeyboardDisplayedWithType:(KIFKeyboardType)keyboardType error:(NSError **)error;
 {
-    CGSize *keyboardKeySizesForOrientation = ([[[UIDevice currentDevice] systemVersion] floatValue]  >= 6.0) ?
-        keyboardKeySizesForOrientationiOS6 : keyboardKeySizesForOrientationPReiOS6;
+    CGSize *keyboardKeySizesForOrientation = ([[[UIDevice currentDevice] systemVersion] floatValue]  >= 5.0) ?
+        keyboardKeySizesForOrientationiOS5Plus : keyboardKeySizesForOrientationPReiOS6;
     
     switch (keyboardType)
     {
