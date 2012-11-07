@@ -468,6 +468,16 @@ typedef KIFTestStepResult (^KIFTestStepExecutionBlock)(KIFTestStep *step, NSErro
 + (id)stepToTapRowInTableViewWithAccessibilityLabel:(NSString*)tableViewLabel atIndexPath:(NSIndexPath *)indexPath;
 
 /*!
+ @method stepToCheckExistanceOfRowInTableViewWithAccessibilityLabel:
+ @abstract A step checks the existance of a row
+ @discussion This step will get the view with the specified accessibility label and tap the row at indexPath.
+ @param tableViewLabel Accessibility label of the table view.
+ @param indexPath Index path of the row to tap.
+ @result A configured test step.
+ */
++ (id)stepToCheckAbsenceOfRowInTableViewWithAccessibilityLabel:(NSString*)tableViewLabel atIndexPath:(NSIndexPath *)indexPath;
+
+/*!
  @method stepToTapViewWithParentAccessibilityLabel:childViewWithAccessibilityLabel:
  @abstract A step that taps a view or accessibility element with a parent and child matching accessibility labels
  @discussionThe view or accessibility element with the given label is found in the view hierarchy. Once the element is present and tappable, a tappable event will be fired. Note that the view does not necessarily have to be visible on the screen, and may be behind another view or offscreen. Views with their hidden property set to YES are ignored.

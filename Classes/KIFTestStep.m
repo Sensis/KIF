@@ -778,6 +778,25 @@ typedef CGPoint KIFDisplacement;
     }];
 }
 
++ (id)stepToCheckAbsenceOfRowInTableViewWithAccessibilityLabel:(NSString*)tableViewLabel atIndexPath:(NSIndexPath *)indexPath
+{
+    NSString *description = [NSString stringWithFormat:@"Step to check absence %@ in tableView with label %@", [indexPath description], tableViewLabel];
+    return [KIFTestStep stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
+        UIAccessibilityElement *element = [[UIApplication sharedApplication] accessibilityElementWithLabel:tableViewLabel];
+        
+        KIFTestWaitCondition(element, error, @"View with label %@ not found", tableViewLabel);
+        UITableView *tableView = (UITableView*)[UIAccessibilityElement viewContainingAccessibilityElement:element];
+        
+        KIFTestCondition([tableView isKindOfClass:[UITableView class]], error, @"Specified view is not a UITableView");
+        KIFTestCondition(tableView, error, @"Table view with label '%@' not found", tableViewLabel);
+        
+        UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+
+		KIFTestCondition(cell==nil, error, @"Cell at '%@' was found when expected to be absent", [indexPath description]);
+
+		return KIFTestStepResultSuccess;
+    }];
+}
 
 + (id)stepToWaitForViewWithAccessibilityLabel:(NSString *)label value:(NSString *)value notContainingViewWithAccessibilityLabel:(NSString *)absentChildLabel childValue:(NSString *)childValue{
 	NSString *description = [NSString stringWithFormat:@"Wait for parent view with accessibility label \"%@\" without child with accessibility label \"%@\"", label, absentChildLabel];
