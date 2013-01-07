@@ -1235,8 +1235,8 @@ typedef CGPoint KIFDisplacement;
     }
     
     // Make sure the element is visible
-    UIView *view = [UIAccessibilityElement viewContainingAccessibilityElement:element];
-    if (!view) {
+    UIView *viewContainingAccessibilityElement = [UIAccessibilityElement viewContainingAccessibilityElement:element];
+    if (!viewContainingAccessibilityElement) {
         if (error) {
             *error = [[[NSError alloc] initWithDomain:@"KIFTest" code:KIFTestStepResultFailure userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat: @"Cannot find view containing accessibility element with the label \"%@\"", label], NSLocalizedDescriptionKey, nil]] autorelease];
         }
@@ -1244,16 +1244,27 @@ typedef CGPoint KIFDisplacement;
     }
     
     // Scroll the view to be visible if necessary
-    UIScrollView *scrollView = (UIScrollView *)view;
+    UIScrollView *scrollView = (UIScrollView *)viewContainingAccessibilityElement;
     while (scrollView && ![scrollView isKindOfClass:[UIScrollView class]]) {
         scrollView = (UIScrollView *)scrollView.superview;
     }
     if (scrollView) {
-        if ((UIAccessibilityElement *)view == element) {
-            [scrollView scrollViewToVisible:view animated:YES];
+     
+        if ((UIAccessibilityElement *)viewContainingAccessibilityElement == element) {
+            [scrollView scrollViewToVisible:viewContainingAccessibilityElement animated:YES];
         } else {
-            CGRect elementFrame = [view.window convertRect:element.accessibilityFrame toView:scrollView];
-            [scrollView setContentOffset:CGPointMake(0,  elementFrame.origin.y) animated:YES];
+            //Give UIScrollView time to resize if needed
+            CFRunLoopRunInMode(kCFRunLoopDefaultMode, .05, false);
+            
+            CGRect elementFrame = [viewContainingAccessibilityElement.window convertRect:element.accessibilityFrame toView:scrollView];
+            // Clamp the maximum contentOffset for the scrollview, otherwise, if the view we want to scroll to is at the bottom
+            // it gets scroll past the bounds of the contentSize which can cause crash below:
+            // "Crash Log=Terminating app due to uncaught exception 'NSInternalInconsistencyException', reason: 'Cell animation stop fraction must be greater than start fraction'
+            CGFloat desiredContentOffsetY = elementFrame.origin.y;
+            CGFloat maximumContentOffsetY = scrollView.contentSize.height - scrollView.frame.size.height;
+            CGFloat newContentOffset = fminf(desiredContentOffsetY, maximumContentOffsetY);
+            NSLog(@"maximumContentOffsetY: %.2f newContentOffset:%.2f desiredContentOffsetY:%.2f",maximumContentOffsetY, newContentOffset, desiredContentOffsetY);
+            [scrollView setContentOffset:CGPointMake(0,  newContentOffset) animated:YES];
         }
         
         // Give the scroll view a small amount of time to perform the scroll.
@@ -1268,13 +1279,13 @@ typedef CGPoint KIFDisplacement;
     }
     
     // There are some issues with the tappability check in UIWebViews, so if the view is a UIWebView we will just skip the check.
-    if ([NSStringFromClass([view class]) isEqualToString:@"UIWebBrowserView"]) {
+    if ([NSStringFromClass([viewContainingAccessibilityElement class]) isEqualToString:@"UIWebBrowserView"]) {
         return element;
     }
 
     if (mustBeTappable) {
         // Make sure the view is tappable
-        if (![view isTappable]) {
+        if (![viewContainingAccessibilityElement isTappable]) {
             if (error) {
                 *error = [[[NSError alloc] initWithDomain:@"KIFTest" code:KIFTestStepResultFailure userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Accessibility element with label \"%@\" is not tappable. It may be blocked by other views.", label], NSLocalizedDescriptionKey, nil]] autorelease];
             }
@@ -1282,7 +1293,7 @@ typedef CGPoint KIFDisplacement;
         }
     } else {
         // If we don't require tappability, at least make sure it's not hidden
-        if ([view isHidden]) {
+        if ([viewContainingAccessibilityElement isHidden]) {
             if (error) {
                 *error = [[[NSError alloc] initWithDomain:@"KIFTest" code:KIFTestStepResultFailure userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Accessibility element with label \"%@\" is hidden.", label], NSLocalizedDescriptionKey, nil]] autorelease];
             }
