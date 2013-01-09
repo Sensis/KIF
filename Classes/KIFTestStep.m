@@ -1242,40 +1242,24 @@ typedef CGPoint KIFDisplacement;
         }
         return nil;
     }
-    
+
     // Scroll the view to be visible if necessary
     UIScrollView *scrollView = (UIScrollView *)viewContainingAccessibilityElement;
     while (scrollView && ![scrollView isKindOfClass:[UIScrollView class]]) {
         scrollView = (UIScrollView *)scrollView.superview;
     }
     if (scrollView) {
-     
         if ((UIAccessibilityElement *)viewContainingAccessibilityElement == element) {
             [scrollView scrollViewToVisible:viewContainingAccessibilityElement animated:YES];
         } else {
-            //Give UIScrollView time to resize if needed
-            CFRunLoopRunInMode(kCFRunLoopDefaultMode, .05, false);
-            
+            CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.1, false);
             CGRect elementFrame = [viewContainingAccessibilityElement.window convertRect:element.accessibilityFrame toView:scrollView];
-            // Clamp the maximum contentOffset for the scrollview, otherwise, if the view we want to scroll to is at the bottom
-            // it gets scroll past the bounds of the contentSize which can cause crash below:
-            // "Crash Log=Terminating app due to uncaught exception 'NSInternalInconsistencyException', reason: 'Cell animation stop fraction must be greater than start fraction'
-            CGFloat desiredContentOffsetY = elementFrame.origin.y;
-            CGFloat maximumContentOffsetY = scrollView.contentSize.height - scrollView.frame.size.height;
-            CGFloat newContentOffset = fminf(desiredContentOffsetY, maximumContentOffsetY);
-            NSLog(@"maximumContentOffsetY: %.2f newContentOffset:%.2f desiredContentOffsetY:%.2f",maximumContentOffsetY, newContentOffset, desiredContentOffsetY);
-            [scrollView setContentOffset:CGPointMake(0,  newContentOffset) animated:YES];
+            [scrollView scrollRectToVisible:elementFrame animated:YES];
+            CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.1, false);
         }
         
         // Give the scroll view a small amount of time to perform the scroll.
-        CFRunLoopRunInMode(kCFRunLoopDefaultMode, 1., false);
-    }
-    
-    if ([[UIApplication sharedApplication] isIgnoringInteractionEvents]) {
-        if (error) {
-            *error = [[[NSError alloc] initWithDomain:@"KIFTest" code:KIFTestStepResultFailure userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Application is ignoring interaction events", NSLocalizedDescriptionKey, nil]] autorelease];
-        }
-        return nil;
+        CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.3, false);
     }
     
     // There are some issues with the tappability check in UIWebViews, so if the view is a UIWebView we will just skip the check.
