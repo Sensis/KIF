@@ -859,9 +859,14 @@ typedef CGPoint KIFDisplacement;
 
 + (id)stepToSwipeViewWithAccessibilityLabel:(NSString *)label inDirection:(KIFSwipeDirection)direction offsetFromCenter:(CGPoint)offset
 {
+	return [self stepToSwipeViewWithAccessibilityLabel:label inDirection:direction offsetFromCenter:offset withVelocity:NUM_POINTS_IN_SWIPE_PATH];
+}
+
++ (id)stepToSwipeViewWithAccessibilityLabel:(NSString *)label inDirection:(KIFSwipeDirection)direction offsetFromCenter:(CGPoint)offset withVelocity:(NSInteger)velocity
+{
     // The original version of this came from http://groups.google.com/group/kif-framework/browse_thread/thread/df3f47eff9f5ac8c
     NSString *directionDescription = nil;
-
+	
     switch(direction)
     {
         case KIFSwipeDirectionRight:
@@ -877,38 +882,38 @@ typedef CGPoint KIFDisplacement;
             directionDescription = @"down";
             break;
     }
-
+	
     NSString *description = [NSString stringWithFormat:@"Step to swipe %@ on view with accessibility label %@", directionDescription, label];
     return [KIFTestStep stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
         UIAccessibilityElement *element = [self _accessibilityElementWithLabel:label accessibilityValue:nil tappable:NO traits:UIAccessibilityTraitNone error:error];
         if (!element) {
             return KIFTestStepResultWait;
         }
-
+		
         UIView *viewToSwipe = [UIAccessibilityElement viewContainingAccessibilityElement:element];
         KIFTestWaitCondition(viewToSwipe, error, @"Cannot find view with accessibility label \"%@\"", label);
-
+		
         // Within this method, all geometry is done in the coordinate system of
         // the view to swipe.
-
+		
         CGRect elementFrame = [viewToSwipe.window convertRect:element.accessibilityFrame toView:viewToSwipe];
         CGPoint swipeStart = CGPointCenteredInRect(elementFrame);
         swipeStart.x += offset.x;
         swipeStart.y += offset.y;
-
+		
         KIFDisplacement swipeDisplacement = [self _displacementForSwipingInDirection:direction];
-
-        CGPoint swipePath[NUM_POINTS_IN_SWIPE_PATH];
-
-        for (int pointIndex = 0; pointIndex < NUM_POINTS_IN_SWIPE_PATH; pointIndex++)
+		
+        CGPoint swipePath[velocity];
+		
+        for (int pointIndex = 0; pointIndex < velocity; pointIndex++)
         {
-            CGFloat swipeProgress = ((CGFloat)pointIndex)/(NUM_POINTS_IN_SWIPE_PATH - 1);
+            CGFloat swipeProgress = ((CGFloat)pointIndex)/(velocity - 1);
             swipePath[pointIndex] = CGPointMake(swipeStart.x + (swipeProgress * swipeDisplacement.x),
                                                 swipeStart.y + (swipeProgress * swipeDisplacement.y));
         }
-
-        [viewToSwipe dragAlongPathWithPoints:swipePath count:NUM_POINTS_IN_SWIPE_PATH];
-
+		
+        [viewToSwipe dragAlongPathWithPoints:swipePath count:velocity];
+		
         return KIFTestStepResultSuccess;
     }];
 }

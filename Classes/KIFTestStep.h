@@ -520,6 +520,7 @@ typedef enum {
  */
 + (id)stepToSwipeViewWithAccessibilityLabel:(NSString *)label inDirection:(KIFSwipeDirection)direction;
 + (id)stepToSwipeViewWithAccessibilityLabel:(NSString *)label inDirection:(KIFSwipeDirection)direction offsetFromCenter:(CGPoint)offset;
++ (id)stepToSwipeViewWithAccessibilityLabel:(NSString *)label inDirection:(KIFSwipeDirection)direction offsetFromCenter:(CGPoint)offset withVelocity:(NSInteger) drag;
 
 /*!
  @method stepToWaitForFirstResponderWithAccessibilityLabel:
