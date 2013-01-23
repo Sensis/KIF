@@ -127,7 +127,8 @@ typedef CGPoint KIFDisplacement;
     }
     
     return [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
-        UIAccessibilityElement *element = [self _accessibilityElementWithLabel:label accessibilityValue:value tappable:NO traits:traits error:error];
+        BOOL shouldBeTappable = (traits & UIAccessibilityTraitButton);
+        UIAccessibilityElement *element = [self _accessibilityElementWithLabel:label accessibilityValue:value tappable:shouldBeTappable traits:traits error:error];
         
         NSString *waitDescription = nil;
         if (value.length) {
@@ -265,7 +266,8 @@ typedef CGPoint KIFDisplacement;
         KIFTestWaitCondition(![[UIApplication sharedApplication] isIgnoringInteractionEvents], error, @"Application is ignoring interaction events.");
 
         // If the element can't be found, then we're done
-        UIAccessibilityElement *element = [[UIApplication sharedApplication] accessibilityElementWithLabel:label accessibilityValue:value traits:traits];
+        BOOL shouldBeTappable = (traits & UIAccessibilityTraitButton);
+        UIAccessibilityElement *element = [self _accessibilityElementWithLabel:label accessibilityValue:value tappable:shouldBeTappable traits:traits error:error];
         if (!element) {
             return KIFTestStepResultSuccess;
         }
