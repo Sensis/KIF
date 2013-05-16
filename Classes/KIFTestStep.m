@@ -77,6 +77,33 @@ typedef CGPoint KIFDisplacement;
     KIFTestStepDefaultTimeout = newDefaultTimeout;
 }
 
++ (id)stepSetDefaultTimeout:(NSTimeInterval)newDefaultTimeout
+{
+    KIFTestStep *step = [[self alloc] init];
+    step.description = [NSString stringWithFormat:@"Set Default Timeout:%f", newDefaultTimeout];
+    step.executionBlock = ^(KIFTestStep *step, NSError **error)
+    {
+        [KIFTestStep setDefaultTimeout:newDefaultTimeout];
+        return KIFTestStepResultSuccess;
+    };
+    
+    return [step autorelease];
+}
+
+
++ (id)stepResetDefaultTimeout
+{
+    KIFTestStep *step = [[self alloc] init];
+    step.description = @"Reset Default Timeout";
+    step.executionBlock = ^(KIFTestStep *step, NSError **error)
+    {
+        [KIFTestStep setDefaultTimeout:KIFTestStepDefaultTimeout];
+        return KIFTestStepResultSuccess;
+    };
+    
+    return [step autorelease];
+}
+
 + (id)stepWithDescription:(NSString *)description executionBlock:(KIFTestStepExecutionBlock)executionBlock;
 {
     NSAssert(description.length, @"All steps must have a description");
