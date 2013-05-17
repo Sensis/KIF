@@ -130,6 +130,18 @@ typedef KIFTestStepResult (^KIFTestStepExecutionBlock)(KIFTestStep *step, NSErro
 + (void)setDefaultTimeout:(NSTimeInterval)newDefaultTimeout;
 
 /*!
+ @method stepSetDefaultTimeout:
+ @abstract Step to change the default timeout
+ */
++ (id)stepSetDefaultTimeout:(NSTimeInterval)newDefaultTimeout
+
+/*!
+ @method stepResetDefaultTimeout:
+ @abstract Step to reset the default timeout
+ */
++ (id)stepResetDefaultTimeout
+
+/*!
  @method stepWithDescription:executionBlock:
  @abstract Convenience initializer to create a new custom step.
  @param description A description of the what the step does. Required.
