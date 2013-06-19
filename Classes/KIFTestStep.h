@@ -480,6 +480,17 @@ typedef KIFTestStepResult (^KIFTestStepExecutionBlock)(KIFTestStep *step, NSErro
 + (id)stepToTapRowInTableViewWithAccessibilityLabel:(NSString*)tableViewLabel atIndexPath:(NSIndexPath *)indexPath;
 
 /*!
+ @method stepToTapRowInTableViewWithAccessibilityLabel:atIndexPath:
+ @abstract A step that taps the row at IndexPath in a view with the given label.
+ @discussion This step will get the view with the specified accessibility label and tap the row at indexPath.
+ @param tableViewLabel Accessibility label of the table view.
+ @param indexPath Index path of the row to tap.
+ @param point off-center
+ @result A configured test step.
+ */
++ (id)stepToTapRowInTableViewWithAccessibilityLabel:(NSString*)tableViewLabel atIndexPath:(NSIndexPath *)indexPath withOffsetFromCenter:(CGPoint) point;
+
+/*!
  @method stepToCheckExistanceOfRowInTableViewWithAccessibilityLabel:
  @abstract A step checks the existance of a row
  @discussion This step will get the view with the specified accessibility label and tap the row at indexPath.

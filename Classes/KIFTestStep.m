@@ -775,7 +775,11 @@ typedef CGPoint KIFDisplacement;
     }];
 }
 
-+ (id)stepToTapRowInTableViewWithAccessibilityLabel:(NSString*)tableViewLabel atIndexPath:(NSIndexPath *)indexPath
++ (id)stepToTapRowInTableViewWithAccessibilityLabel:(NSString*)tableViewLabel atIndexPath:(NSIndexPath *)indexPath {
+    return [KIFTestStep stepToTapRowInTableViewWithAccessibilityLabel:tableViewLabel atIndexPath:indexPath withOffsetFromCenter:CGPointZero];
+}
+
++ (id)stepToTapRowInTableViewWithAccessibilityLabel:(NSString*)tableViewLabel atIndexPath:(NSIndexPath *)indexPath withOffsetFromCenter:(CGPoint) point
 {
     NSString *description = [NSString stringWithFormat:@"Step to tap %@ in tableView with label %@", [indexPath description], tableViewLabel];
     return [KIFTestStep stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
@@ -799,6 +803,8 @@ typedef CGPoint KIFDisplacement;
         
 		KIFTestWaitCondition(cell, error, @"Cell at indexPath '%@' not found", [indexPath description]);
         CGPoint tapPoint = [cell tappablePointInRect:cell.bounds];
+        tapPoint.x += point.x;
+        tapPoint.y += point.y;
         KIFTestWaitCondition(!CGPointEqualToPoint(tapPoint, CGPointMake(NAN, NAN)),error, @"Cell at indexPath '%@' was not tappable", [indexPath description]);
         
         [cell tapAtPoint:tapPoint];
