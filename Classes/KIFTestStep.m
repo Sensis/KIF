@@ -48,7 +48,6 @@ typedef enum {
 
 + (UIAccessibilityElement *)_accessibilityElementWithLabel:(NSString *)label accessibilityValue:(NSString *)value tappable:(BOOL)mustBeTappable traits:(UIAccessibilityTraits)traits error:(out NSError **)error;
 
-typedef CGPoint KIFDisplacement;
 + (KIFDisplacement)_displacementForSwipingInDirection:(KIFSwipeDirection)direction;
 
 + (BOOL)_isKeyboardDisplayedWithType:(KIFKeyboardType)keyboardType error:(NSError **)error;
