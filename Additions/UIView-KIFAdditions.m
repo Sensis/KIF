@@ -110,7 +110,18 @@ typedef struct __GSEvent * GSEventRef;
         BOOL traitsMatch = ((element.accessibilityTraits) & traits) == traits;
         BOOL valuesMatch = !value || [value isEqual:accessibilityValue];
 
-        return (BOOL)(labelsMatch && traitsMatch && valuesMatch);
+        BOOL result = labelsMatch && traitsMatch && valuesMatch;
+#if 0 // Useful for tracking KIF failures
+        if (labelsMatch)
+        {
+            NSLog(@"Found:%@: labelsMatch:%@ (%@,%@) for %@ traitsMatch:%@ (%llu,%llu) valuesMatch:%@ (%@, %@)",
+                (result ? @"YES" : @"NO"),
+                (labelsMatch ? @"YES" : @"NO"), element.accessibilityLabel, label, [element class],
+                (traitsMatch ? @"YES" : @"NO"), element.accessibilityTraits, traits,
+                (valuesMatch ? @"YES" : @"NO"), accessibilityValue, value);
+        }
+#endif
+        return result;
     }];
 }
 
