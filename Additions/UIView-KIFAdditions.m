@@ -491,16 +491,16 @@ typedef struct __GSEvent * GSEventRef;
     
     UIView *hitView = nil;
     CGPoint tapPoint = CGPointZero;
-    
-    // Mid point
-    tapPoint = CGPointCenteredInRect(frame);
+
+    // Top left
+    tapPoint = CGPointMake(frame.origin.x + 1.0f, frame.origin.y + 1.0f);
     hitView = [self.window hitTest:tapPoint withEvent:nil];
     if ([self isTappableWithHitTestResultView:hitView]) {
         return [self.window convertPoint:tapPoint toView:self];
     }
     
-    // Top left
-    tapPoint = CGPointMake(frame.origin.x + 1.0f, frame.origin.y + 1.0f);
+    // Mid point
+    tapPoint = CGPointCenteredInRect(frame);
     hitView = [self.window hitTest:tapPoint withEvent:nil];
     if ([self isTappableWithHitTestResultView:hitView]) {
         return [self.window convertPoint:tapPoint toView:self];
