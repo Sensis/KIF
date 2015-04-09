@@ -46,6 +46,7 @@
 - (void)dragFromPoint:(CGPoint)startPoint toPoint:(CGPoint)endPoint;
 - (void)dragAlongPathWithPoints:(CGPoint *)points count:(NSInteger)count;
 
+- (BOOL)isTappable;
 /*!
  @method isTappableWithHitTestResultView:
  @abstract Easy hook to override whether a hit test result makes a view tappable.

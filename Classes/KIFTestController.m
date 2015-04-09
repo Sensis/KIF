@@ -558,9 +558,9 @@ static void releaseInstance()
 - (void)_logTestingDidStart;
 {
     if (failedScenarioIndexes.count != self.scenarios.count) {
-        KIFLog(@"BEGIN KIF TEST RUN: re-running %d of %d scenarios that failed last time", failedScenarioIndexes.count, self.scenarios.count);
+        KIFLog(@"BEGIN KIF TEST RUN: re-running %luu of %luu scenarios that failed last time",(unsigned long) (unsigned long)failedScenarioIndexes.count,(unsigned long) (unsigned long)self.scenarios.count);
     } else {
-        KIFLog(@"BEGIN KIF TEST RUN: %d scenarios", self.scenarios.count);
+        KIFLog(@"BEGIN KIF TEST RUN: %luu scenarios",(unsigned long) (unsigned long)self.scenarios.count);
     }
 }
 
@@ -580,18 +580,18 @@ static void releaseInstance()
         }];
         KIFLog(@"RE-RUN: %@",[methods componentsJoinedByString:@","]);
     }
-    KIFLog(@"KIF TEST RUN FINISHED: %d failures (duration %.2fs)", [failingScenarios count], -[self.testSuiteStartDate timeIntervalSinceNow]);
+    KIFLog(@"KIF TEST RUN FINISHED: %luu failures (duration %.2fs)",(unsigned long) (unsigned long)[failingScenarios count], -[self.testSuiteStartDate timeIntervalSinceNow]);
     KIFLogSeparator();
     
     // Also log the failure count to stdout, for easier integration with CI tools.
-    NSLog(@"*** KIF TESTING FINISHED: %d failures", [failingScenarios count]);
+    NSLog(@"*** KIF TESTING FINISHED: %lu failures", (unsigned long)[failingScenarios count]);
 }
 
 - (void)_logDidStartScenario:(KIFTestScenario *)scenario;
 {
     KIFLogBlankLine();
     KIFLogSeparator();
-    KIFLog(@"BEGIN SCENARIO %d/%d (%d steps)", [self.scenarios indexOfObjectIdenticalTo:scenario] + 1, self.scenarios.count, scenario.steps.count);
+    KIFLog(@"BEGIN SCENARIO %lu %lu (%lu steps)", (unsigned long)[self.scenarios indexOfObjectIdenticalTo:scenario] + 1, (unsigned long)self.scenarios.count, (unsigned long)scenario.steps.count);
     KIFLog(@"%@", scenario.description);
     KIFLogSeparator();
 }
@@ -601,7 +601,7 @@ static void releaseInstance()
     KIFLogBlankLine();
     KIFLogSeparator();
     NSString *reason = (scenario.skippedByFilter ? @"filter doesn't match description" : @"only running previously-failed scenarios");
-    KIFLog(@"SKIPPING SCENARIO %d/%d (%@)", [self.scenarios indexOfObjectIdenticalTo:scenario] + 1, self.scenarios.count, reason);
+    KIFLog(@"SKIPPING SCENARIO %lu/%lu (%@)", (unsigned long)[self.scenarios indexOfObjectIdenticalTo:scenario] + 1, (unsigned long)self.scenarios.count, reason);
     KIFLog(@"%@", scenario.description);
     KIFLogSeparator();
 }

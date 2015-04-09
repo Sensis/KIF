@@ -81,7 +81,7 @@ typedef CGPoint KIFDisplacement;
 {
     KIFTestStep *step = [[self alloc] init];
     step.description = [NSString stringWithFormat:@"Set Default Timeout:%f", newDefaultTimeout];
-    step.executionBlock = ^(KIFTestStep *step, NSError **error)
+    step.executionBlock = (KIFTestStepExecutionBlock)^(KIFTestStep *step, NSError **error)
     {
         [KIFTestStep setDefaultTimeout:newDefaultTimeout];
         return KIFTestStepResultSuccess;
@@ -95,7 +95,7 @@ typedef CGPoint KIFDisplacement;
 {
     KIFTestStep *step = [[self alloc] init];
     step.description = @"Reset Default Timeout";
-    step.executionBlock = ^(KIFTestStep *step, NSError **error)
+    step.executionBlock = (KIFTestStepExecutionBlock)^(KIFTestStep *step, NSError **error)
     {
         [KIFTestStep setDefaultTimeout:KIFTestStepDefaultTimeout];
         return KIFTestStepResultSuccess;
@@ -117,14 +117,14 @@ typedef CGPoint KIFDisplacement;
 
 + (id)stepThatFails;
 {
-    return [self stepWithDescription:@"Always fails" executionBlock:^(KIFTestStep *step, NSError **error) {
+    return [self stepWithDescription:@"Always fails" executionBlock:(KIFTestStepExecutionBlock)^(KIFTestStep *step, NSError **error) {
         KIFTestCondition(NO, error, @"This test always fails");
     }];
 }
 
 + (id)stepThatSucceeds;
 {
-    return [self stepWithDescription:@"Always succeeds" executionBlock:^(KIFTestStep *step, NSError **error) {
+    return [self stepWithDescription:@"Always succeeds" executionBlock:(KIFTestStepExecutionBlock)^(KIFTestStep *step, NSError **error) {
         return KIFTestStepResultSuccess;
     }];
 }
@@ -153,7 +153,7 @@ typedef CGPoint KIFDisplacement;
         description = [NSString stringWithFormat:@"Wait for view with accessibility label \"%@\"", label];
     }
     
-    return [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
+    return [self stepWithDescription:description executionBlock:(KIFTestStepExecutionBlock)^(KIFTestStep *step, NSError **error) {
         BOOL shouldBeTappable = (traits & UIAccessibilityTraitButton);
         UIAccessibilityElement *element = [self _accessibilityElementWithLabel:label accessibilityValue:value tappable:shouldBeTappable traits:traits error:error];
         
@@ -218,7 +218,7 @@ typedef CGPoint KIFDisplacement;
     NSString *description = [NSString stringWithFormat:@"Wait for parent view with accessibility label \"%@\" with value \"%@\" %@ containing child with accessibility label \"%@\" with value \"%@\"",
                     parentLabel, parentValue, requiresChild ? @"" : @"not", childLabel, childValue];
     
-    return [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
+    return [self stepWithDescription:description executionBlock:(KIFTestStepExecutionBlock)^(KIFTestStep *step, NSError **error) {
         UIAccessibilityElement *parentElement = [self _accessibilityElementWithLabel:parentLabel accessibilityValue:parentValue tappable:NO traits:UIAccessibilityTraitNone error:error];
         UIView *parentView = [UIAccessibilityElement viewContainingAccessibilityElement:parentElement];    
         
@@ -287,7 +287,7 @@ typedef CGPoint KIFDisplacement;
         description = [NSString stringWithFormat:@"Wait for view with accessibility label \"%@\" to be gone", label];
     }
     
-    return [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
+    return [self stepWithDescription:description executionBlock:(KIFTestStepExecutionBlock)(KIFTestStepExecutionBlock)^(KIFTestStep *step, NSError **error) {
         
         // If the app is ignoring interaction events, then wait before doing our analysis
         KIFTestWaitCondition(![[UIApplication sharedApplication] isIgnoringInteractionEvents], error, @"Application is ignoring interaction events.");
@@ -330,7 +330,7 @@ typedef CGPoint KIFDisplacement;
         description = [NSString stringWithFormat:@"Wait for tappable view with accessibility label \"%@\"", label];
     }
     
-    return [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
+    return [self stepWithDescription:description executionBlock:(KIFTestStepExecutionBlock)^(KIFTestStep *step, NSError **error) {
         UIAccessibilityElement *element = [self _accessibilityElementWithLabel:label accessibilityValue:value tappable:YES traits:traits error:error];
         return (element ? KIFTestStepResultSuccess : KIFTestStepResultWait);
     }];
@@ -340,7 +340,7 @@ typedef CGPoint KIFDisplacement;
 {
     // In general, we should discourage use of a step like this. It's pragmatic to include it though.
     __block NSTimeInterval startTime = 0;
-    KIFTestStep *step = [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
+    KIFTestStep *step = [self stepWithDescription:description executionBlock:(KIFTestStepExecutionBlock)^(KIFTestStep *step, NSError **error) {
         if (startTime == 0) {
             startTime = [NSDate timeIntervalSinceReferenceDate];
         }
@@ -360,7 +360,7 @@ typedef CGPoint KIFDisplacement;
 {
     NSString *description = [NSString stringWithFormat:@"Observe notification \"%@\"", name];
     
-    KIFTestStep *step = [self stepWithDescription:description executionBlock:^(KIFTestStep *scopedStep, NSError **error) {  
+    KIFTestStep *step = [self stepWithDescription:description executionBlock:(KIFTestStepExecutionBlock)^(KIFTestStep *scopedStep, NSError **error) {
 		scopedStep.notificationName = name;
 		scopedStep.notificationObject = object;
 		[[NSNotificationCenter defaultCenter] addObserver:scopedStep selector:@selector(_onObservedNotification:) name:name object:object];
@@ -374,7 +374,7 @@ typedef CGPoint KIFDisplacement;
     NSString *description = [NSString stringWithFormat:@"Wait for notification \"%@\"", observingNotificationStep.notificationName];
 
     KIFTestStep *step = [self stepWithDescription:description
-								   executionBlock:^(KIFTestStep *scopedStep, NSError **error)
+								   executionBlock:(KIFTestStepExecutionBlock)^(KIFTestStep *scopedStep, NSError **error)
 	{
 		KIFTestWaitCondition(observingNotificationStep.notificationOccurred,
 							 error,
@@ -389,7 +389,7 @@ typedef CGPoint KIFDisplacement;
 {
     NSString *description = [NSString stringWithFormat:@"Wait for notification \"%@\" while executing child step \"%@\"", name, childStep];
     
-    KIFTestStep *step = [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {  
+    KIFTestStep *step = [self stepWithDescription:description executionBlock:(KIFTestStepExecutionBlock)^(KIFTestStep *step, NSError **error) {
         if (!step.observingForNotification) {            
             step.notificationName = name;
             step.notificationObject = object; 
@@ -434,7 +434,7 @@ typedef CGPoint KIFDisplacement;
     
     __block UIView *view = nil;
     
-    return [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
+    return [self stepWithDescription:description executionBlock:(KIFTestStepExecutionBlock)^(KIFTestStep *step, NSError **error) {
 
         // If we've already tapped the view and stored it to a variable, and we've waited for the quiesce time to elapse, then we're done.
         if (view) {
@@ -508,7 +508,7 @@ typedef CGPoint KIFDisplacement;
     __block NSTimeInterval quiesceStartTime = 0.0;
     __block UIView *childView = nil;
 
-    return [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
+    return [self stepWithDescription:description executionBlock:(KIFTestStepExecutionBlock)^(KIFTestStep *step, NSError **error) {
         UIAccessibilityElement *parentElement = [self _accessibilityElementWithLabel:parentLabel accessibilityValue:parentValue tappable:NO traits:UIAccessibilityTraitNone error:error];
         UIView *parentView = [UIAccessibilityElement viewContainingAccessibilityElement:parentElement];
 
@@ -576,7 +576,7 @@ typedef CGPoint KIFDisplacement;
 {
     NSString *description = [NSString stringWithFormat:@"Tap screen at point \"%@\"", NSStringFromCGPoint(screenPoint)];
     
-    return [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
+    return [self stepWithDescription:description executionBlock:(KIFTestStepExecutionBlock)^(KIFTestStep *step, NSError **error) {
         
         // Try all the windows until we get one back that actually has something in it at the given point
         UIView *view = nil;
@@ -608,7 +608,7 @@ typedef CGPoint KIFDisplacement;
 + (id)stepToEnterText:(NSString *)text intoViewWithAccessibilityLabel:(NSString *)label traits:(UIAccessibilityTraits)traits expectedResult:(NSString *)expectedResult;
 {
     NSString *description = [NSString stringWithFormat:@"Type the text \"%@\" into the view with accessibility label \"%@\"", text, label];
-    return [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
+    return [self stepWithDescription:description executionBlock:(KIFTestStepExecutionBlock)^(KIFTestStep *step, NSError **error) {
         
         UIAccessibilityElement *element = [self _accessibilityElementWithLabel:label accessibilityValue:nil tappable:YES traits:traits error:error];
         if (!element) {
@@ -665,7 +665,7 @@ typedef CGPoint KIFDisplacement;
 + (id)stepToSelectPickerViewRowWithTitle:(NSString *)title;
 {
     NSString *description = [NSString stringWithFormat:@"Select the \"%@\" item from the picker", title];
-    return [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
+    return [self stepWithDescription:description executionBlock:(KIFTestStepExecutionBlock)^(KIFTestStep *step, NSError **error) {
         
         // Find the picker view
         UIPickerView *pickerView = [[[[UIApplication sharedApplication] pickerViewWindow] subviewsWithClassNameOrSuperClassNamePrefix:@"UIPickerView"] lastObject];
@@ -714,7 +714,7 @@ typedef CGPoint KIFDisplacement;
 + (id)stepToSetOn:(BOOL)switchIsOn forSwitchWithAccessibilityLabel:(NSString *)label;
 {
     NSString *description = [NSString stringWithFormat:@"Toggle the switch with accessibility label \"%@\" to %@", label, switchIsOn ? @"ON" : @"OFF"];
-    return [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
+    return [self stepWithDescription:description executionBlock:(KIFTestStepExecutionBlock)^(KIFTestStep *step, NSError **error) {
         
         UIAccessibilityElement *element = [self _accessibilityElementWithLabel:label accessibilityValue:nil tappable:YES traits:UIAccessibilityTraitNone error:error];
         if (!element) {
@@ -756,7 +756,7 @@ typedef CGPoint KIFDisplacement;
 
 + (id)stepToDismissPopover;
 {
-    return [self stepWithDescription:@"Dismiss the popover" executionBlock:^(KIFTestStep *step, NSError **error) {
+    return [self stepWithDescription:@"Dismiss the popover" executionBlock:(KIFTestStepExecutionBlock)^(KIFTestStep *step, NSError **error) {
         const NSTimeInterval tapDelay = 0.05;
         NSArray *windows = [[UIApplication sharedApplication] windows];
         KIFTestCondition(windows.count, error, @"Failed to find any windows in the application");
@@ -769,7 +769,7 @@ typedef CGPoint KIFDisplacement;
 
 + (id)stepToSimulateMemoryWarning;
 {
-    return [KIFTestStep stepWithDescription:@"Simulate a memory warning" executionBlock:^(KIFTestStep *step, NSError **error) {
+    return [KIFTestStep stepWithDescription:@"Simulate a memory warning" executionBlock:(KIFTestStepExecutionBlock)^(KIFTestStep *step, NSError **error) {
         [[NSNotificationCenter defaultCenter] postNotificationName:UIApplicationDidReceiveMemoryWarningNotification object:[UIApplication sharedApplication]];
         return KIFTestStepResultSuccess;
     }];
@@ -782,7 +782,7 @@ typedef CGPoint KIFDisplacement;
 + (id)stepToTapRowInTableViewWithAccessibilityLabel:(NSString*)tableViewLabel atIndexPath:(NSIndexPath *)indexPath withOffsetFromCenter:(CGPoint) point
 {
     NSString *description = [NSString stringWithFormat:@"Step to tap %@ in tableView with label %@", [indexPath description], tableViewLabel];
-    return [KIFTestStep stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
+    return [KIFTestStep stepWithDescription:description executionBlock:(KIFTestStepExecutionBlock)^(KIFTestStep *step, NSError **error) {
         UIAccessibilityElement *element = [[UIApplication sharedApplication] accessibilityElementWithLabel:tableViewLabel];
         
         KIFTestWaitCondition(element, error, @"View with label %@ not found", tableViewLabel);
@@ -816,7 +816,7 @@ typedef CGPoint KIFDisplacement;
 + (id)stepToCheckAbsenceOfRowInTableViewWithAccessibilityLabel:(NSString*)tableViewLabel atIndexPath:(NSIndexPath *)indexPath
 {
     NSString *description = [NSString stringWithFormat:@"Step to check absence %@ in tableView with label %@", [indexPath description], tableViewLabel];
-    return [KIFTestStep stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
+    return [KIFTestStep stepWithDescription:description executionBlock:(KIFTestStepExecutionBlock)^(KIFTestStep *step, NSError **error) {
         UIAccessibilityElement *element = [[UIApplication sharedApplication] accessibilityElementWithLabel:tableViewLabel];
         
         KIFTestWaitCondition(element, error, @"View with label %@ not found", tableViewLabel);
@@ -836,7 +836,7 @@ typedef CGPoint KIFDisplacement;
 + (id)stepToWaitForViewWithAccessibilityLabel:(NSString *)label value:(NSString *)value notContainingViewWithAccessibilityLabel:(NSString *)absentChildLabel childValue:(NSString *)childValue{
 	NSString *description = [NSString stringWithFormat:@"Wait for parent view with accessibility label \"%@\" without child with accessibility label \"%@\"", label, absentChildLabel];
     
-    return [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
+    return [self stepWithDescription:description executionBlock:(KIFTestStepExecutionBlock)^(KIFTestStep *step, NSError **error) {
         UIAccessibilityElement *parentElement = [self _accessibilityElementWithLabel:label accessibilityValue:value tappable:NO traits:UIAccessibilityTraitNone error:error];
         UIView *parentElementView = [UIAccessibilityElement viewContainingAccessibilityElement:parentElement];
         
@@ -919,7 +919,7 @@ typedef CGPoint KIFDisplacement;
     }
 	
     NSString *description = [NSString stringWithFormat:@"Step to swipe %@ on view with accessibility label %@", directionDescription, label];
-    return [KIFTestStep stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
+    return [KIFTestStep stepWithDescription:description executionBlock:(KIFTestStepExecutionBlock)^(KIFTestStep *step, NSError **error) {
         UIAccessibilityElement *element = [self _accessibilityElementWithLabel:label accessibilityValue:nil tappable:NO traits:UIAccessibilityTraitNone error:error];
         if (!element) {
             return KIFTestStepResultWait;
@@ -972,7 +972,7 @@ typedef CGPoint KIFDisplacement;
     
     // This is basically the same as the step to tap with an accessibility label except that the accessibility labels for the albums have the number of photos appended to the end, such as "My Photos (3)." This means that we have to do a prefix match rather than an exact match.
     NSString *description = [NSString stringWithFormat:@"Select the \"%@\" photo album", albumName];
-    [steps addObject:[KIFTestStep stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
+    [steps addObject:[KIFTestStep stepWithDescription:description executionBlock:(KIFTestStepExecutionBlock)^(KIFTestStep *step, NSError **error) {
         
         NSString *labelPrefix = [NSString stringWithFormat:@"%@,   (", albumName];
         UIAccessibilityElement *element = [[UIApplication sharedApplication] accessibilityElementMatchingBlock:^(UIAccessibilityElement *element) {
