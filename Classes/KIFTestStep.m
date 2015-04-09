@@ -48,7 +48,6 @@ typedef enum {
 
 + (UIAccessibilityElement *)_accessibilityElementWithLabel:(NSString *)label accessibilityValue:(NSString *)value tappable:(BOOL)mustBeTappable traits:(UIAccessibilityTraits)traits error:(out NSError **)error;
 
-typedef CGPoint KIFDisplacement;
 + (KIFDisplacement)_displacementForSwipingInDirection:(KIFSwipeDirection)direction;
 
 + (BOOL)_isKeyboardDisplayedWithType:(KIFKeyboardType)keyboardType error:(NSError **)error;
@@ -1329,7 +1328,7 @@ typedef CGPoint KIFDisplacement;
 }
 
 #define MAJOR_SWIPE_DISPLACEMENT 200
-#define MINOR_SWIPE_DISPLACEMENT 5
+#define MINOR_SWIPE_DISPLACEMENT 0
 
 + (KIFDisplacement)_displacementForSwipingInDirection:(KIFSwipeDirection)direction
 {
@@ -1338,6 +1337,7 @@ typedef CGPoint KIFDisplacement;
         // As discovered on the Frank mailing lists, it won't register as a
         // swipe if you move purely horizontally or vertically, so need a
         // slight orthogonal offset too.
+        // (Was this a bug in the earlier Simulators, now doesn't seem be apply against Xcode 5.1.1)
         case KIFSwipeDirectionRight:
             return CGPointMake(MAJOR_SWIPE_DISPLACEMENT, MINOR_SWIPE_DISPLACEMENT);
             break;
