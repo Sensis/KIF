@@ -1288,7 +1288,8 @@ typedef enum {
         scrollView = (UIScrollView *)scrollView.superview;
     }
     if (scrollView) {
-        if ((UIAccessibilityElement *)viewContainingAccessibilityElement == element) {
+        NSString *elementClass = NSStringFromClass([element class]);
+        if ((UIAccessibilityElement *)viewContainingAccessibilityElement == element && ![elementClass isEqualToString:@"_UIAlertControllerActionView"]) {
             [scrollView scrollViewToVisible:viewContainingAccessibilityElement animated:YES];
         } else {
             CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.1, false);
