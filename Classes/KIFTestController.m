@@ -288,8 +288,7 @@ static void releaseInstance()
 - (void)startTestingWithCompletionBlock:(KIFTestControllerCompletionBlock)inCompletionBlock
 {
     NSAssert(!self.testing, @"Testing is already in progress");
-    NSAssert([self _isAccessibilityInspectorEnabled], @"The accessibility inspector must be enabled in order to run KIF tests. It can be turned on in the Settings app of the simulator by going to General -> Accessibility.");
-    
+
     self.testing = YES;
     self.testSuiteStartDate = [NSDate date];
 
