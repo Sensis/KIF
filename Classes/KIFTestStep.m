@@ -649,14 +649,14 @@ typedef enum {
             }
         }
         
-        // This is probably a UITextField- or UITextView-ish view, so make sure it worked
-        if ([view respondsToSelector:@selector(text)]) {
-            // We trim \n and \r because they trigger the return key, so they won't show up in the final product on single-line inputs
-            NSString *expected = [expectedResult ? expectedResult : text stringByTrimmingCharactersInSet:[NSCharacterSet newlineCharacterSet]];
-            NSString *actual = [[view performSelector:@selector(text)] stringByTrimmingCharactersInSet:[NSCharacterSet newlineCharacterSet]];
-            KIFTestCondition([actual isEqualToString:expected], error, @"Failed to actually enter text \"%@\" in field; instead, it was \"%@\"", text, actual);
-        }
-        
+//        // This is probably a UITextField- or UITextView-ish view, so make sure it worked
+//        if ([view respondsToSelector:@selector(text)]) {
+//            // We trim \n and \r because they trigger the return key, so they won't show up in the final product on single-line inputs
+//            NSString *expected = [expectedResult ? expectedResult : text stringByTrimmingCharactersInSet:[NSCharacterSet newlineCharacterSet]];
+//            NSString *actual = [[view performSelector:@selector(text)] stringByTrimmingCharactersInSet:[NSCharacterSet newlineCharacterSet]];
+//            KIFTestCondition([actual isEqualToString:expected], error, @"Failed to actually enter text \"%@\" in field; instead, it was \"%@\"", text, actual);
+//        }
+
         return KIFTestStepResultSuccess;
     }];
 }
